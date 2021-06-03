@@ -1,0 +1,15 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: MaxReplicas
+metadata:
+  name: maxreplicas
+spec:
+  enforcementAction: deny      
+  match:
+    namespaces:
+      - "petclinic-bluegreen"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
+  parameters:
+    replicas: 3
+

@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequiredLabelsDeployment
+metadata:
+  name: required-label-deployment
+spec:
+  enforcementAction: dryrun       
+  match:
+    namespaces:
+      - "petclinic-bluegreen"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
+  parameters:
+    labels: ["app"]

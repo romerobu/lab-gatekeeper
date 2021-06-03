@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequiredRouteName
+metadata:
+  name: required-route-name
+spec:
+  enforcementAction: deny       
+  match:
+    namespaces:
+      - "petclinic-bluegreen"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Route"]
+  parameters:
+    name: quarkus-petclinic-bluegreen 
