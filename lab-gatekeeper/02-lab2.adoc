@@ -1,0 +1,17 @@
+= Lab 2 - Istiofy applications
+:author: Coral Romero
+:email: cromerob@redhat.com
+:imagesdir: ./images
+:toc: left
+:toc-title: Istiofy applications
+
+[Abstract]
+Abstract
+
+:numbered:
+== Istiofy application
+
+=== Lab 2
+
+=== Lab 3
+
