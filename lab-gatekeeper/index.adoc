@@ -1,0 +1,19 @@
+= Service Mesh Introduction - Labs
+:author: Coral Romero
+:email: cromerob@redhat.com
+:imagesdir: ./images
+:toc: left
+:toc-title: OPA - Gatekeeper - Labs 
+
+
+include::00-intro-and-prereq.adoc[]
+
+include::01-lab1.adoc[]
+
+include::02-lab2.adoc[]
+
+include::03-lab3.adoc[]
+
+include::04-lab4.adoc[]
+
+include::05-lab5.adoc[]
