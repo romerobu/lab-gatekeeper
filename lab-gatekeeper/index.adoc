@@ -1,4 +1,4 @@
-= Service Mesh Introduction - Labs
+= OPA - Gatekeeper - Labs
 :author: Coral Romero
 :email: cromerob@redhat.com
 :imagesdir: ./images
@@ -17,3 +17,7 @@ include::03-lab3.adoc[]
 include::04-lab4.adoc[]
 
 include::05-lab5.adoc[]
+
+[%header*]
+|===
+And this is all for the `OPA - Gatekeeper` workshop.
