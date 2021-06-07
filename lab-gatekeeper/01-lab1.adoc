@@ -7,10 +7,33 @@
 
 
 [Abstract]
-Abstract
+This lab aims to introduce how Gatekeeper works and its basic configuration. 
+If your environment was set up properly you should be able to log in with your gatekeeper-ops-role user.
+Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints but not cluster-admin.
+
+For this example we don't need any specific configuration so we don't need to deploy a Config resource.
 
 :numbered:
-== Deploy services
+== Deploy ConstraintTemplate
 
+First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
+You can deploy it with this command:
 
+----
+oc apply -f lab-gatekeeper-files/lab1/constraintTemplate.yaml
+----
 
+As you can see, this constraint template is written using the rego syntax mentioned before. It compares the constraint integer input with the replicas value of the object under test.
+
+== Deploy Constraint
+
+After deploying the constraint template you can deploy the constraint resource which defines:
+
+- Namaspace where the rule is implemented: petclinic-bluegreen.
+- Resource under test: Deployment.
+- Replicas parameter: 3.
+- Enforcement action: deny.
+
+== Test positive case
+
+== Test negative case
