@@ -1,17 +1,22 @@
-= Lab 2 - Istiofy applications
+= Lab 2 - Required labels
 :author: Coral Romero
 :email: cromerob@redhat.com
 :imagesdir: ./images
 :toc: left
-:toc-title: Istiofy applications
+:toc-title: Required labels
 
 [Abstract]
-Abstract
+In this use case we are going to verify that every service, route and deployment match the same labels as part of the deployment process.
+As we are testing different kinds of resources like Deployment, Route and Service, we are going to deploy different constraints. Furthermore we are going to exclude a namespace to see how to implement this functionality.
 
 :numbered:
-== Istiofy application
+== Deploy Config
 
-=== Lab 2
+== Deploy Constraint Template
 
-=== Lab 3
+== Deploy Constraint 
+
+== Positive test
+
+== Negative test
 
