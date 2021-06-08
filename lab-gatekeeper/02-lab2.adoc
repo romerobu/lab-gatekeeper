@@ -37,7 +37,7 @@ oc apply -f lab-gatekeeper-files/lab2/constraint-route.yaml
 oc apply -f lab-gatekeeper-files/lab2/constraint-service.yaml
 ----
 
-== Positive test
+== Test negative case
 
-== Negative test
+== Test positive case
 

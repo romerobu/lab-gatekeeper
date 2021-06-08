@@ -45,7 +45,7 @@ A login screen will be shown as follow:
 
 Enter your `username` and `password` and click `Log In`.
 
-If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 3 namespaces, ``, `` and ``:
+If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 2 namespaces, `petclinic-bluegreen-<your username>` and  `petclinic-monitoring-<your username>`.
 
 *Add img 
 
@@ -72,30 +72,20 @@ version   4.7.12    True        False         5d      Cluster version is 4.7.12
 
 The above is an example of what you should get when running the command.
 
-=== Install Gatekeeper operator
+=== Gatekeeper operator
 
 
-Gatekeeper operator can be installed via Red Hat Marketplace or by creating a Subscription resource.
+Gatekeeper operator can be installed via Red Hat Marketplace or by creating a Subscription resource. For installing an operator you need to have cluster-admin role while your user has "gatekeeper-ops-role". Furthermore you will find a Gatekeeper resource created with the basic configuration needed for logs and audit feature.
 
- - Console:
+This role limits the privileges of your user so you won't be able to run cluster wide actions but you will have enough privileges for create, get, list, delete, patch, update and watch gatekeeper resources.
 
-   * Navigate to Operators marketplace
-   * Install "Gatekeeper Operator"
-   * Create Gatekeeper resource
+You can check existing Gatekeeper resource with command:
 
- - Subscription:
-   
-   * Create Subscription resource as in config/install-operator.yaml
-   * Create Gatekeeper resource as in config/create-gatekeeper.yaml
+WARNING: Your user only has permissions to get and list this resource.
 
-Additionally in this repo you can find a script called "setup.sh" which creates all the namespaces requires for this exercise plus the operator resources for installation and constraints.
-
-[source, bash]
 ----
-./setup.sh
+oc get gatekeepers gatekeeper -o yaml
 ----
-
-Apart from Openshift Gatekeeper operator, you can install this feature using helm charts available https://open-policy-agent.github.io/gatekeeper/website/docs/install[here].
 
 == Gatekeeper operator features
 
@@ -126,6 +116,7 @@ Webhooks values like timeouts and failure policy can be configured to ignore cer
 
 You can check current admission hook configuration with this command:
 
+WARNING: Your user only has permissions to get and list this resource.
 
 [source, bash]
 ----
