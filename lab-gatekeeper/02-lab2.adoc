@@ -10,11 +10,32 @@ In this use case we are going to verify that every service, route and deployment
 As we are testing different kinds of resources like Deployment, Route and Service, we are going to deploy different constraints. Furthermore we are going to exclude a namespace to see how to implement this functionality.
 
 :numbered:
-== Deploy Config
-
 == Deploy Constraint Template
 
+First we need to deploy the constraint templates where we are going to check the existing labels of the object under test and use the substraction operator to check any missing label.
+
+----
+oc apply -f lab-gatekeeper-files/lab2/constraintTemplateDeployment.yaml
+oc apply -f lab-gatekeeper-files/lab2/constraintTemplateRoute.yaml
+oc apply -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml
+----
+
 == Deploy Constraint 
+
+Additionally we need to deploy the constraints where we are going to limite the inpact to "petclinic-bluegreen" namespace and specify the required label.
+
+For this example parameters are:
+
+- Namaspace where the rule is implemented: petclinic-bluegreen.
+- Resource under test: Deployment, Service and Route.
+- Required label: "app".
+- Enforcement action: dryrun. Dryrun means you will be alerted if your resources violate any constraint but you will be allowed to create the resource.
+
+----
+oc apply -f lab-gatekeeper-files/lab2/constraint-deployment.yaml
+oc apply -f lab-gatekeeper-files/lab2/constraint-route.yaml
+oc apply -f lab-gatekeeper-files/lab2/constraint-service.yaml
+----
 
 == Positive test
 

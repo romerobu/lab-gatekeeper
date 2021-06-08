@@ -21,3 +21,4 @@ include::05-lab5.adoc[]
 [%header*]
 |===
 And this is all for the `OPA - Gatekeeper` workshop.
+Hope you have enjoyed it!

@@ -32,7 +32,11 @@ After deploying the constraint template you can deploy the constraint resource w
 - Namaspace where the rule is implemented: petclinic-bluegreen.
 - Resource under test: Deployment.
 - Replicas parameter: 3.
-- Enforcement action: deny.
+- Enforcement action: deny. Deny means you won't be allowed to create the resource.
+
+----
+oc apply -f lab-gatekeeper-files/lab1/constraint.yaml
+----
 
 == Test positive case
 
