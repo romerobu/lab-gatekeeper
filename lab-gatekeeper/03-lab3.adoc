@@ -1,3 +1,6 @@
+= Lab 3 - Required route names
+:author: Coral Romero
+:email: cromerob@redhat.com
 :imagesdir: ./images
 :toc: left
 :toc-title: Required route name
