@@ -6,7 +6,7 @@ metadata:
   labels:
     app: quarkus-petclinic-blue
 spec:
-  replicas: 5
+  replicas: 2
   selector:
     matchLabels:
       app: quarkus-petclinic-blue
@@ -35,7 +35,8 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: quarkus-petclinic-bluegreen
+  ##name: quarkus-petclinic-bluegreen
+  name: prueba
   labels:
     app: quarkus-petclinic-bluegreen
 spec:

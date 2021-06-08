@@ -1,0 +1,44 @@
+:imagesdir: ./images
+:toc: left
+:toc-title: Required route name
+
+[Abstract]
+In this use case we are going to verify that the route name follows the required pattern to validate it.
+For this example we are going to apply this constraint over two different projects, "petclinic-bluegreen" which is the production environment and "petclinic-beta-user0" which is the development environment. Previously we are going to create a Config resource to exclude "webhook" process from "petclinic-beta-user0" project so we will be able to create non valid resources but those violations will be registered on the status.
+
+:numbered:
+== Deploy Config
+
+As mentioned we need to create a config resource to exclude some processes from a namespace, "webhook" for "petclinic-beta-user0":
+
+----
+oc apply -f lab-gatekeeper-files/lab3/config.yaml
+----
+
+== Deploy Constraint Template
+
+First we need to deploy the constraint templates where we are going to check the existing name of the object under test.
+
+----
+oc apply -f lab-gatekeeper-files/lab3/constraintTemplate.yaml
+----
+
+== Deploy Constraint 
+
+Additionally we need to deploy the constraints where we are going to limite the inpact to "petclinic-bluegreen" and "petclinic-beta-user0"  namespace and specify the required name.
+
+For this example parameters are:
+
+- Namaspace where the rule is implemented: petclinic-bluegreen and petclinic-beta-user0.
+- Resource under test: Route.
+- Required name: "quarkus-petclinic-bluegreen".
+- Enforcement action: deny.
+
+----
+oc apply -f lab-gatekeeper-files/lab3/constraint.yaml
+----
+
+== Test negative case
+
+== Test positive case
+

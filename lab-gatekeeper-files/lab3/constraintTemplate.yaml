@@ -19,7 +19,7 @@ spec:
         package requiredroutename
         violation[{"msg": msg}] {
           provided := input.review.object.metadata.name
-          required := input.parameters.labels.name
-          contains(provided,required)
+          required := input.parameters.name
+          not contains(provided,required)
           msg := sprintf("Route must include string: %v", [required])
         }
