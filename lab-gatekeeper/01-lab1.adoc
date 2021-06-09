@@ -13,7 +13,6 @@ Once you are logged in you should be able to have enough privileges to create ga
 
 For this example we don't need any specific configuration so we don't need to deploy a Config resource.
 
-:numbered:
 === Deploy ConstraintTemplate
 
 First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
