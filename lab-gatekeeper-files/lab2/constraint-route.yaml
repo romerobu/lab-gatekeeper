@@ -3,7 +3,7 @@ kind: RequiredLabelsRoute
 metadata:
   name: required-label-route
 spec:
-  enforcementAction: dryrun       
+  enforcementAction: deny     
   match:
     namespaces:
       - "petclinic-bluegreen"      

@@ -3,7 +3,7 @@ kind: RequiredLabelsDeployment
 metadata:
   name: required-label-deployment
 spec:
-  enforcementAction: dryrun   
+  enforcementAction: deny   
   match:
     namespaces:
       - "petclinic-bluegreen"      

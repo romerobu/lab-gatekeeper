@@ -3,7 +3,7 @@ kind: RequiredLabelsSvc
 metadata:
   name: required-label-service
 spec:
-  enforcementAction: dryrun       
+  enforcementAction: deny       
   match:
     namespaces:
       - "petclinic-bluegreen"      
