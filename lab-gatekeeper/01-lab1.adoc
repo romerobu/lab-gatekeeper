@@ -13,6 +13,8 @@ Once you are logged in you should be able to have enough privileges to create ga
 
 For this example we don't need any specific configuration so we don't need to deploy a Config resource.
 
+== Deploy constraint
+
 === Deploy ConstraintTemplate
 
 First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
@@ -36,6 +38,8 @@ After deploying the constraint template you can deploy the constraint resource w
 ----
 oc apply -f lab-gatekeeper-files/lab1/constraint.yaml
 ----
+
+== Test constraint
 
 === Test positive case
 
