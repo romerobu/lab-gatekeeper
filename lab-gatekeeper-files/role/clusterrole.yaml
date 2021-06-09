@@ -47,15 +47,15 @@ rules:
       - templates.gatekeeper.sh
     resources:
       - constrainttemplates
-  - verbs:
-      - get
-    apiGroups:
-      - operator.gatekeeper.sh
-    resources:
-      - gatekeeper      
-  - verbs:
-      - get
-    apiGroups:
-      - admissionregistration.k8s.io
-    resources:
-      - validatingwebhookconfigurations
+#  - verbs:
+#      - get
+#    apiGroups:
+#      - operator.gatekeeper.sh
+#    resources:
+#      - gatekeeper      
+#  - verbs:
+#      - get
+#    apiGroups:
+#      - admissionregistration.k8s.io
+#    resources:
+#      - validatingwebhookconfigurations

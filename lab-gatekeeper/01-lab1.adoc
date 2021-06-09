@@ -1,20 +1,20 @@
-= Lab 1 - Setup demo applications
+= Lab 1 - Max replicas
 :author: Coral Romero
 :email: cromerob@redhat.com
 :imagesdir: ./images
 :toc: left
-:toc-title: Setup demo applications
+:toc-title: Max replicas
 
 
 [Abstract]
 This lab aims to introduce how Gatekeeper works and its basic configuration. 
 If your environment was set up properly you should be able to log in with your gatekeeper-ops-role user.
-Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints but not cluster-admin.
+Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints and view resources like gatekeeper and config but not cluster-admin.
 
 For this example we don't need any specific configuration so we don't need to deploy a Config resource.
 
 :numbered:
-== Deploy ConstraintTemplate
+=== Deploy ConstraintTemplate
 
 First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
 You can deploy it with this command:
@@ -23,9 +23,9 @@ You can deploy it with this command:
 oc apply -f lab-gatekeeper-files/lab1/constraintTemplate.yaml
 ----
 
-As you can see, this constraint template is written using the rego syntax mentioned before. It compares the constraint integer input with the replicas value of the object under test.
+As you can see, this constraint template is written using the rego syntax mentioned before. It compares that the constraint integer input is not greater than the replicas value of the object under test.
 
-== Deploy Constraint
+=== Deploy Constraint
 
 After deploying the constraint template you can deploy the constraint resource which defines:
 
@@ -38,6 +38,40 @@ After deploying the constraint template you can deploy the constraint resource w
 oc apply -f lab-gatekeeper-files/lab1/constraint.yaml
 ----
 
-== Test positive case
+=== Test positive case
 
-== Test negative case
+For testing a positive case where deployment accomplish the constraint run this command to deploy a deployment whose replicas value is 2:
+
+----
+oc apply -f lab-gatekeeper-files/lab1/app-positive.yaml
+----
+
+As you can see, you are allowed to create the resources and there is no violation on the constraint status:
+
+----
+oc get constraint maxreplicas -o yaml
+----
+
+On the status section you can see two sections:
+
+ - auditTimestamp: this timestamp indicates when the last check happened. This frequency can be overrided on gatekeeper resource.
+ - byPod: this section shows three pods created on "openshift-gatekeeper-system" namespace. This pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
+
+=== Test negative case
+
+For testing a negative case where deployment accomplish the cosntraint run this command to deploy a deployment whose replicas value is 5:
+
+----
+oc apply -f lab-gatekeeper-files/lab1/app-negative.yaml
+----
+
+As you can see you cannot create this deployment resource and you are prompted with error message "". This error message is customized on constraint resource.
+Furthermore as you weren't allowed to create the resource, there won't be any non-compliance resource so constraint won't be hooked and there should not be any violation on status section.
+
+WARNING: Audit interval is 60 seconds by default, so you may need to wait this time to see any update.
+
+
+To end this lab, delete every resource:
+
+----
+----
