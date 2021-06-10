@@ -1,0 +1,61 @@
+= Lab 4 - Limit ratio
+:author: Coral Romero
+:email: cromerob@redhat.com
+:imagesdir: ./images
+:toc: left
+:toc-title: Limit ratio
+
+
+[Abstract]
+In this lab we are going to implement a constraint for limiting the ratio consumption between cpu and memory for requests and limits, this means limits should be specified according to an specific ratio for requests. Narrowing the limit for cpu and memory is useful for limiting consumption of the pod so it doesn't overwhelm your cluster.
+
+For this constraint apart from implement the comparison between input values, we need to do some extra verification because cpu and memory can be determined in different units so we need to be able to apply this constraint for different input units.
+
+:numbered:
+== Deploy constraint
+
+=== Deploy Constraint Template
+
+First of all we are going to the deploy the constraint template where we are going to define how to parse the units and violation for ratio for cpu and memory.
+
+----
+oc apply -f lab-gatekeeper-files/lab3/constraintTemplate.yaml
+----
+
+=== Deploy Constraint
+
+Then we have to deploy the constraint where we are going to define the resource under test and ratio value, besides the namespace.
+
+For this example parameters are:
+
+- Namaspace where the rule is implemented: petclinic-bluegreen.
+- Resource under test: Pod.
+- Ratio: 3.
+- Enforcement action: deny.
+
+----
+oc apply -f lab-gatekeeper-files/lab4/constraint.yaml
+----
+
+== Test constraint
+
+=== Test positive case
+
+For testing the positive case we are going to deploy an app which request a limit and request ratio lower than the maximun allowd. By running this command we should be able to deploy it properly:
+
+----
+oc apply -f lab-gatekeeper-files/lab4/deploy-app-ratio.yaml
+
+----
+
+=== Test negative case
+
+For testing the negative case and how the constraint works, we are going to patch the deployment to request a much higher cpu and memory limit than 3 times the requested value. If constraint wouldn't exist, this could cause a much higher consumption than possible and the cluster resources would be compromissed.
+
+Then we should be prompted with error message "" as this ratio value is not allowed.
+
+----
+oc patch 
+----
+
+

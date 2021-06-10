@@ -24,7 +24,7 @@ oc apply -f lab-gatekeeper-files/lab2/constraintTemplateRoute.yaml
 oc apply -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml
 ----
 
-== Deploy Constraint 
+=== Deploy Constraint 
 
 Additionally we need to deploy the constraints where we are going to limite the impact to "petclinic-bluegreen" namespace and specify the required label.
 
