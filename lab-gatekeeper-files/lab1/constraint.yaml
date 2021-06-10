@@ -6,7 +6,7 @@ spec:
   enforcementAction: deny      
   match:
     namespaces:
-      - "petclinic-bluegreen"      
+      - "petclinic-bluegreen-user0"      
     kinds:
       - apiGroups: ["*"]
         kinds: ["Deployment"]

@@ -6,10 +6,10 @@ spec:
   enforcementAction: deny       
   match:
     namespaces:
-      - "petclinic-bluegreen"  
+      - "petclinic-bluegreen-user0"  
       - "petclinic-beta-user0"    
     kinds:
       - apiGroups: ["*"]
         kinds: ["Route"]
   parameters:
-    name: quarkus-petclinic-bluegreen 
+    name: route-petclinic-bluegreen 

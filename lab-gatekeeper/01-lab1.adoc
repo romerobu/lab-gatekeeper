@@ -11,7 +11,6 @@ This lab aims to introduce how Gatekeeper works and its basic configuration.
 If your environment was set up properly you should be able to log in with your gatekeeper-ops-role user.
 Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints and view resources like gatekeeper and config but not cluster-admin.
 
-For this example we don't need any specific configuration so we don't need to deploy a Config resource.
 
 == Deploy constraint
 
@@ -30,7 +29,7 @@ As you can see, this constraint template is written using the rego syntax mentio
 
 After deploying the constraint template you can deploy the constraint resource which defines:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen.
+- Namaspace where the rule is implemented: petclinic-bluegreen-$username.
 - Resource under test: Deployment.
 - Replicas parameter: 3.
 - Enforcement action: deny. Deny means you won't be allowed to create the resource.
@@ -46,7 +45,7 @@ oc apply -f lab-gatekeeper-files/lab1/constraint.yaml
 For testing a positive case where deployment accomplish the constraint run this command to deploy a deployment whose replicas value is 2:
 
 ----
-oc apply -f lab-gatekeeper-files/lab1/app-positive.yaml
+oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$username
 ----
 
 As you can see, you are allowed to create the resources and there is no violation on the constraint status:
@@ -62,13 +61,13 @@ On the status section you can see two sections:
 
 === Test negative case
 
-For testing a negative case where deployment accomplish the cosntraint run this command to deploy a deployment whose replicas value is 5:
+For testing a negative case where deployment doesn't accomplish the constraint run this command to patch current replicas value to 5:
 
 ----
-oc apply -f lab-gatekeeper-files/lab1/app-negative.yaml
+oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"replicas":5}}' --type merge
 ----
 
-As you can see you cannot create this deployment resource and you are prompted with error message "". This error message is customized on constraint resource.
+As you can see you cannot create this deployment resource and you are prompted with error message "Deployment 5 pods is higher than the maximum allowed of 3". This error message is customized on constraint resource.
 Furthermore as you weren't allowed to create the resource, there won't be any non-compliance resource so constraint won't be hooked and there should not be any violation on status section.
 
 WARNING: Audit interval is 60 seconds by default, so you may need to wait this time to see any update.
@@ -77,4 +76,5 @@ WARNING: Audit interval is 60 seconds by default, so you may need to wait this t
 To end this lab, delete every resource:
 
 ----
+oc delete all --selector app=quarkus-petclinic-blue
 ----

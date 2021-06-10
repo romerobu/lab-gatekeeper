@@ -5,11 +5,12 @@
 :toc: left
 :toc-title: Required labels
 
-[Abstract]
 
-In this second lab we are going to verify that every service, route and deployment match the same labels as part of the deployment process.
+[Abstract]
+In this second lab we are going to verify that every service, route and deployment match the same label as part of the deployment process.
+
 As we are testing different kinds of resources like Deployment, Route and Service, we are going to deploy different constraints. 
-Furthermore we are going to exclude a namespace to see how to implement this functionality.
+
 
 :numbered:
 == Deploy constraint
@@ -26,48 +27,45 @@ oc apply -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml
 
 === Deploy Constraint 
 
-Additionally we need to deploy the constraints where we are going to limite the impact to "petclinic-bluegreen" namespace and specify the required label.
+Additionally we need to deploy the constraints where we are going to limite the impact to "petclinic-bluegreen-$username" namespace and specify the required label.
 
 For this example parameters are:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen.
+- Namaspace where the rule is implemented: petclinic-bluegreen-$username.
 - Resource under test: Deployment, Service and Route.
 - Required label: "app".
-- Enforcement action: dryrun. Dryrun means you will be alerted if your resources violate any constraint but you will be allowed to create the resource.
+- Enforcement action: deny.
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/constraint-deployment.yaml
 oc apply -f lab-gatekeeper-files/lab2/constraint-route.yaml
-oc apply -f lab-gatekeeper-files/lab2/constraint-service.yaml
+oc apply -f lab-gatekeeper-files/lab2/constraint-svc.yaml
 ----
 
 == Test constraint
 
-=== Test negative case
+=== Test positive case
 
-For testing the positive case we are going to deploy these resources to the allowed namespace "petclinic-bluegreen" and to the excluded namespace "petclinic-beta-username".
+For testing the positive case we are going to deploy these resources to the allowed namespace "petclinic-bluegreen".
 You should expect these resources to be deployed properly because they accomplish the constraints.
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-bluegreen-$username
-oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-beta-$username
 ----
 
-=== Test positive case
+=== Test negative case
 
 For testing the negative case we are going to deploy a set of non-compliance resources to the namespaces.
 
-For the first namespace you should be prompted with error message "" as they don't have the required labels.
-For the second namespace as it's excluded from the constraint you should be able to create the resources.
+As these resource don't include the required label you should be prompted with error message "You must provide labels: {"app"}" as they don't have the required labels.
 
 ----
-oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue-negative.yaml -n petclinic-bluegreen-$username
-oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue-negative.yaml -n petclinic-beta-$username
+oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$username
 ----
 
 == Dryrun
 
-The recently deployed constraints were created as in the first lab with enforcement mode to "deny" however gatekeeper other mode called "dryrun" which enables constraints to be deployed without enforcing them. This means that non compliance resources will be created but violations will be audited.
+The recently deployed constraints were created as in the first lab with enforcement mode to "deny" however gatekeeper offers other mode called "dryrun" which enables constraints to be deployed without enforcing them. This means that non compliance resources will be created but violations will be audited.
 
 If we patch the existing constraints to change the enforcement mode to "dryrun" and the try to redeploy the resources we should be able to create all of them but violations will be registered on the status section.
 
@@ -77,7 +75,14 @@ oc patch requiredlabelssvc.constraints.gatekeeper.sh/required-label-service  -p 
 oc patch requiredlabelsroute.constraints.gatekeeper.sh/required-label-route -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
 ----
 
-Then check the status of the violated constraints:
+Then let's try to redeploy the missing labels resources:
+
+----
+oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$username
+----
+
+
+Finally check the status of the violated constraints:
 
 WARNING: You may need to wait the audit interval time till status is updated.
 

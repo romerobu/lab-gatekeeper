@@ -6,4 +6,9 @@ metadata:
 spec:
   match:
     - excludedNamespaces: ["petclinic-beta-user0"]
-      processes: ["webhook"]  
+      processes: ["webhook"]          
+  sync:
+    syncOnly:
+      - group: ""
+        version: "*"
+        kind: "Namespace"            

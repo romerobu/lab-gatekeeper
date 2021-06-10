@@ -9,7 +9,7 @@
 
 In this use case we are going to verify that the route name follows the required pattern to validate it.
 
-For this example we are going to apply this constraint over two different projects, "petclinic-bluegreen" which is the production environment and "petclinic-beta-user0" which is the development environment. 
+For this example we are going to apply this constraint over two different projects, "petclinic-bluegreen-$username" which is the production environment and "petclinic-beta-user0" which is the development environment. 
 
 Previously we are going to create a Config resource to exclude "webhook" process from "petclinic-beta-user0" project so we will be able to create non valid resources but those violations will be registered on the status.
 
@@ -18,7 +18,7 @@ Previously we are going to create a Config resource to exclude "webhook" process
 
 === Deploy Config
 
-As mentioned we need to create a config resource to exclude some processes from a namespace, "webhook" for "petclinic-beta-user0". This is a cluster wide resource which should be created by an user with cluster-admin privileges so you can check the existing resource with this command:
+As mentioned we need to create a config resource to exclude some processes from a namespace, "webhook" for "petclinic-beta-$username". This is a cluster wide resource which should be created by an user with cluster-admin privileges so you can check the existing resource with this command:
 
 ----
 oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
@@ -34,13 +34,13 @@ oc apply -f lab-gatekeeper-files/lab3/constraintTemplate.yaml
 
 === Deploy Constraint 
 
-Additionally we need to deploy the constraints where we are going to limite the inpact to "petclinic-bluegreen" and "petclinic-beta-user0"  namespace and specify the required name.
+Additionally we need to deploy the constraints where we are going to limit the impact to "petclinic-bluegreen-$username" and "petclinic-beta-$username"  namespace and specify the required name.
 
 For this example parameters are:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen and petclinic-beta-user0.
+- Namespace where the rule is implemented: petclinic-bluegreen-$username and petclinic-beta-$username.
 - Resource under test: Route.
-- Required name: "quarkus-petclinic-bluegreen".
+- Required name: "route-petclinic-bluegreen".
 - Enforcement action: deny.
 
 ----
@@ -52,20 +52,28 @@ oc apply -f lab-gatekeeper-files/lab3/constraint.yaml
 
 === Test negative case
 
-In this lab we are going to test how constraint applies to existing resources. For this test we are going to check the starus of the constraint as the existing route's name doesn't fulfil the requirements.
+In this lab we are going to test how constraint applies to existing resources. For this test we are going to check the status of the constraint as the existing route's name doesn't fulfil the requirements.
 
 ----
 oc get requiredroutename.constraints.gatekeeper.sh/required-route-name -o yaml
 ----
 
-As you can see there is a violation detected for resource "Route" with error message "".
+As you can see there is a violation detected for resource "Route" with error message "Route must include string: route-petclinic-bluegreen".
+
+For the second namespace "petclinic-beta-$username" as webhook process is excluded if we try to deploy the same app we should be allowed but getting the same violation warning.
+
+----
+oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$username
+----
 
 === Test postive case
 
 As the existing route's name is not valid we are going to redeploy it for a valid format so there will be no violation alert.
 
 ----
-oc apply -f lab-gatekeeper-files(lab3/petclinic-bluegreen-routename.yaml
+oc delete all --selector app=quarkus-petclinic-blue
+oc delete all --selector gatekeeper=quarkus-petclinic-green
+oc apply -f lab-gatekeeper-files/lab3/deploy-app-blue.yaml -n petclinic-bluegreen-$username
 ----
 
 After waiting the audit interval time there should not be any violation on the constraint.
