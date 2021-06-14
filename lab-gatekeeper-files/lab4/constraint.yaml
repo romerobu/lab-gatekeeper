@@ -5,10 +5,9 @@ metadata:
 spec:
   match:
     namespaces:
-      - "petclinic-bluegreen"      
+      - "petclinic-bluegreen-user0"
     kinds:
       - apiGroups: [""]
         kinds: ["Pod"]
   parameters:
-    cpu: "200m"
-    memory: "1Gi"
+    ratio: "3"

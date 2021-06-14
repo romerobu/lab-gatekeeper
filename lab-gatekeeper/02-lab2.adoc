@@ -27,11 +27,11 @@ oc apply -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml
 
 === Deploy Constraint 
 
-Additionally we need to deploy the constraints where we are going to limite the impact to "petclinic-bluegreen-$username" namespace and specify the required label.
+Additionally we need to deploy the constraints where we are going to limite the impact to "petclinic-bluegreen-$USER" namespace and specify the required label.
 
 For this example parameters are:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen-$username.
+- Namaspace where the rule is implemented: petclinic-bluegreen-$USER.
 - Resource under test: Deployment, Service and Route.
 - Required label: "app".
 - Enforcement action: deny.
@@ -46,11 +46,11 @@ oc apply -f lab-gatekeeper-files/lab2/constraint-svc.yaml
 
 === Test positive case
 
-For testing the positive case we are going to deploy these resources to the allowed namespace "petclinic-bluegreen".
+For testing the positive case we are going to deploy these resources to the allowed namespace "petclinic-bluegreen-$USER".
 You should expect these resources to be deployed properly because they accomplish the constraints.
 
 ----
-oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-bluegreen-$username
+oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 ----
 
 === Test negative case
@@ -60,7 +60,7 @@ For testing the negative case we are going to deploy a set of non-compliance res
 As these resource don't include the required label you should be prompted with error message "You must provide labels: {"app"}" as they don't have the required labels.
 
 ----
-oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$username
+oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$USER
 ----
 
 == Dryrun
@@ -78,7 +78,7 @@ oc patch requiredlabelsroute.constraints.gatekeeper.sh/required-label-route -p '
 Then let's try to redeploy the missing labels resources:
 
 ----
-oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$username
+oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$USER
 ----
 
 

@@ -7,7 +7,8 @@
 
 
 [Abstract]
-In this lab we are going to implement a constraint for limiting the ratio consumption between cpu and memory for requests and limits, this means limits should be specified according to an specific ratio for requests. Narrowing the limit for cpu and memory is useful for limiting consumption of the pod so it doesn't overwhelm your cluster.
+In this lab we are going to implement a constraint for limiting the ratio consumption between cpu and memory for requests and limits, this means limits should be specified according to an specific ratio for requests. 
+Narrowing the limit for cpu and memory is useful for limiting consumption of the pod so it doesn't overwhelm your cluster.
 
 For this constraint apart from implement the comparison between input values, we need to do some extra verification because cpu and memory can be determined in different units so we need to be able to apply this constraint for different input units.
 
@@ -19,7 +20,7 @@ For this constraint apart from implement the comparison between input values, we
 First of all we are going to the deploy the constraint template where we are going to define how to parse the units and violation for ratio for cpu and memory.
 
 ----
-oc apply -f lab-gatekeeper-files/lab3/constraintTemplate.yaml
+oc apply -f lab-gatekeeper-files/lab4/constraintTemplate.yaml
 ----
 
 === Deploy Constraint
@@ -28,7 +29,7 @@ Then we have to deploy the constraint where we are going to define the resource 
 
 For this example parameters are:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen.
+- Namaspace where the rule is implemented: petclinic-bluegreen-$username.
 - Resource under test: Pod.
 - Ratio: 3.
 - Enforcement action: deny.
@@ -39,23 +40,28 @@ oc apply -f lab-gatekeeper-files/lab4/constraint.yaml
 
 == Test constraint
 
-=== Test positive case
-
-For testing the positive case we are going to deploy an app which request a limit and request ratio lower than the maximun allowd. By running this command we should be able to deploy it properly:
-
-----
-oc apply -f lab-gatekeeper-files/lab4/deploy-app-ratio.yaml
-
-----
 
 === Test negative case
 
-For testing the negative case and how the constraint works, we are going to patch the deployment to request a much higher cpu and memory limit than 3 times the requested value. If constraint wouldn't exist, this could cause a much higher consumption than possible and the cluster resources would be compromissed.
+For testing the negative case and how the constraint works, we are going to deploy an app which requests a much higher cpu and memory limit than 3 times the requested value. If constraint wouldn't exist, this could cause a much higher consumption than possible and the cluster resources would be compromissed.
 
-Then we should be prompted with error message "" as this ratio value is not allowed.
+As our constraint is testing pods and we are creating a deployment we will see this resource is created but not scaled as pods don't fulfill the cconditions.
+
+If you navigate to the status section of this resource you will see why is not able to scale the pods and you will see constraint error messages "memory limit <2Gi> is higher than the maximum allowed of <1Gi>" and "cpu limit <800m> is higher than the maximum allowed of <200m>"
 
 ----
-oc patch 
+oc apply -f lab-gatekeeper-files/lab4/deployment-app-blue-bad.yaml
 ----
+
+=== Test positive case
+
+For testing the positive case we are going to patch the deployment to request a limit and request ratio lower than the maximun allowed. By running this command we should be able to deploy it properly:
+
+----
+oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"quarkus-petclinic","image":"'quay.io/dsanchor/quarkus-petclinic:in-mem'","resources":{"limits":{"cpu":"550m","memory":"300Mi"},"requests":{"cpu":"200m","memory":"100Mi"}}}]}}}}' --type merge
+----
+
+As you can see we have deployed de deploymet resource with 2 replicas which has scaled good. Despite the fact that this constraint is testing Pods, if pods created by the deployment doesn't pass the constraint, those won't be created and deployment scaled replicas would be 0.
+
 
 

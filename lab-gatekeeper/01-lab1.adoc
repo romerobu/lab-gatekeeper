@@ -29,7 +29,7 @@ As you can see, this constraint template is written using the rego syntax mentio
 
 After deploying the constraint template you can deploy the constraint resource which defines:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen-$username.
+- Namespace where the rule is implemented: petclinic-bluegreen-$USER.
 - Resource under test: Deployment.
 - Replicas parameter: 3.
 - Enforcement action: deny. Deny means you won't be allowed to create the resource.
@@ -45,7 +45,7 @@ oc apply -f lab-gatekeeper-files/lab1/constraint.yaml
 For testing a positive case where deployment accomplish the constraint run this command to deploy a deployment whose replicas value is 2:
 
 ----
-oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$username
+oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 ----
 
 As you can see, you are allowed to create the resources and there is no violation on the constraint status:
@@ -58,6 +58,12 @@ On the status section you can see two sections:
 
  - auditTimestamp: this timestamp indicates when the last check happened. This frequency can be overrided on gatekeeper resource.
  - byPod: this section shows three pods created on "openshift-gatekeeper-system" namespace. This pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
+
+Finally verify to can navigate to the app you just deployed:
+
+----
+ oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}'
+----
 
 === Test negative case
 

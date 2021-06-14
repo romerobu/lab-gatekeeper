@@ -1,0 +1,57 @@
+= Lab 5 - Sync data
+:author: Coral Romero
+:email: cromerob@redhat.com
+:imagesdir: ./images
+:toc: left
+:toc-title: Sync data
+
+
+[Abstract]
+In this lab we are going to implement a constraint for checking existing resource before proceeding. For this constraint we are going to use the syncing feature, which will allow to check resource quotas from namespaces via data inventory.
+
+
+:numbered:
+== Deploy constraint
+
+=== Deploy Constraint Template
+
+First of all we are going to the deploy the constraint template where we are going to define how a namespace should has a deployed resource quota for deploying any deployment resource.
+
+----
+oc apply -f lab-gatekeeper-files/lab5/constraintTemplate.yaml
+----
+
+=== Deploy Constraint
+
+Then we have to deploy constraint where we are going to define the parameters:
+
+ - Namespace: petclinic-bluegreen-$USER
+ - Resource under test: Deployment
+ - Enforcement action: deny
+
+
+----
+oc apply -f lab-gatekeeper-files/lab5/constraint.yaml
+----
+
+== Test constraint
+
+=== Test negative
+
+For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource "petclinic-beta-$USER" and another onw without it.
+
+For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
+
+----
+oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
+----
+
+As there is no resource quota, you should see error message "".
+
+=== Test positive
+
+For testing the positive case we are going to deploy an app into a namespace with a resource quota. As this deployment follows the existing constraint there shouldn't be any issue.
+
+----
+oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
+----
