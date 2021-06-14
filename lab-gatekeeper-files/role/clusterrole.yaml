@@ -67,4 +67,16 @@ rules:
     apiGroups:
       - admissionregistration.k8s.io
     resources:
-      - validatingwebhookconfigurations  
+      - validatingwebhookconfigurations 
+  - verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+    apiGroups:
+      - template.openshift.io
+    resources:
+      - processedtemplates 

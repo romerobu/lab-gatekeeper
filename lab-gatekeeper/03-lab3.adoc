@@ -71,8 +71,7 @@ oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$
 As the existing route's name is not valid we are going to redeploy it for a valid format so there will be no violation alert.
 
 ----
-oc delete all --selector app=quarkus-petclinic-blue
-oc delete all --selector gatekeeper=quarkus-petclinic-green
+oc delete all --selector app=quarkus-petclinic-blue -n petclinic-bluegreen-$USER
 oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-beta-$USER
 oc apply -f lab-gatekeeper-files/lab3/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 ----
@@ -87,5 +86,5 @@ oc get requiredroutename.constraints.gatekeeper.sh/required-route-name -o yaml
 To finish this lab, delete all the resources:
 
 ----
-oc delete all --selector app=quarkus-petclinic-blue
+oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
 ----

@@ -62,7 +62,7 @@ On the status section you can see two sections:
 Finally verify to can navigate to the app you just deployed:
 
 ----
- oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}'
+ oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
 ----
 
 === Test negative case
@@ -82,5 +82,5 @@ WARNING: Audit interval is 60 seconds by default, so you may need to wait this t
 To end this lab, delete every resource:
 
 ----
-oc delete all --selector app=quarkus-petclinic-blue
+oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
 ----

@@ -50,7 +50,7 @@ As our constraint is testing pods and we are creating a deployment we will see t
 If you navigate to the status section of this resource you will see why is not able to scale the pods and you will see constraint error messages "memory limit <2Gi> is higher than the maximum allowed of <1Gi>" and "cpu limit <800m> is higher than the maximum allowed of <200m>"
 
 ----
-oc apply -f lab-gatekeeper-files/lab4/deployment-app-blue-bad.yaml
+oc apply -f lab-gatekeeper-files/lab4/deployment-app-blue-bad.yaml -n petclinic-bluegreen-$USER
 ----
 
 === Test positive case

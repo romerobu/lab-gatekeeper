@@ -5,8 +5,16 @@ metadata:
   namespace: "openshift-gatekeeper-system"
 spec:
   match:
-    - excludedNamespaces: ["petclinic-beta-user0"]
-      processes: ["webhook"]          
+    - excludedNamespaces: ["petclinic-beta-cromerob"]
+      processes: ["webhook"]         
+    - excludedNamespaces: ["petclinic-beta-acidonpe"]
+      processes: ["webhook"]        
+    - excludedNamespaces: ["petclinic-beta-dsanchor"]
+      processes: ["webhook"]        
+    - excludedNamespaces: ["petclinic-beta-admin"]
+      processes: ["webhook"]        
+    - excludedNamespaces: ["petclinic-beta-taraujo"]
+      processes: ["webhook"]        
   sync:
     syncOnly:
       - group: ""

@@ -56,10 +56,11 @@ while [[ $(oc get pods  -n openshift-gatekeeper-system  -o 'jsonpath={..status.c
 
 sleep 5
 
-# Deploy gatekeeper constraints and templates
+# Deploy config
 
 echo -n "Deploying config..."
-oc apply -f lab-gatekeeper-files/petclinic/config.yaml
+#oc apply -f lab-gatekeeper-files/petclinic/config.yaml
+oc process -f config/config.yaml  -p USER=$USER  | oc apply -f -
 
 # Create namespace and add roles
 oc get secret htpasswd -n openshift-config -o yaml \
