@@ -45,9 +45,9 @@ image:1.png[login]
 
 Enter your `username` and `password` and click `Log In`.
 
-If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 4 namespaces,`openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
+If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
 
-image:namespaces.png[namespace] 
+image:namespaces.png[namespaces]
 
 It is time to get the Openshift CLI binaries for your specific OS. 
 
