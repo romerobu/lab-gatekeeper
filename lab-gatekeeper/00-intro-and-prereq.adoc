@@ -45,7 +45,7 @@ image:1.png[login]
 
 Enter your `username` and `password` and click `Log In`.
 
-If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 2 namespaces, `petclinic-bluegreen-$USER` and  `petclinic-monitoring-$USER`.
+If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 3 namespaces, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
 
 *Add img 
 
@@ -136,8 +136,12 @@ oc get ValidatingWebhookConfiguration gatekeeper-validating-webhook-configuratio
 
 === Config
 
-* Pending
-https://open-policy-agent.github.io/gatekeeper/website/docs/exempt-namespaces
+The Config resource is a resource which can be used to define general configuration for Gatekeeper. 
+The two main configurations we can do are Sync and Match:
+
+- Sync: replicate and sync data to OPA, so these data is available for constraints which need to access more objects that the one under test.
+- Match: list namespaces to be excluded by their names and determine the process among these options: "audit", "webhook", "sync" and "*".
+
 
 === Audit, Syncing and Debugging
 

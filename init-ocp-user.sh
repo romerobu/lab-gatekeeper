@@ -54,6 +54,7 @@ do
     oc adm policy add-role-to-user view $user -n openshift-gatekeeper-system
     oc adm policy add-role-to-user admin $user -n petclinic-beta-$user
     # create resource quota in beta namespace
+    oc apply -f lab-gatekeeper-files/lab5/rs.yaml -n petclinic-beta-$user
 done
 
 
