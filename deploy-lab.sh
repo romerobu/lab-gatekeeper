@@ -8,13 +8,20 @@ source $3
 
 LAB_HOME=/tmp/$LAB_NAME-$VERSION
 
+echo -------- Vars
+echo $LAB_NAME
+echo $VERSION
+echo $ENV
 echo $LAB_HOME
+echo -------- End vars
 
 # create tmp folder for target files
 mkdir -p $LAB_HOME
 
 cp docker/Dockerfile  $LAB_HOME/Dockerfile
 cp -r $LAB_NAME/images $LAB_HOME
+
+sleep 3
 
 asciidoctor -D $LAB_HOME $LAB_NAME/index.adoc -d book
 

@@ -47,3 +47,24 @@ rules:
       - templates.gatekeeper.sh
     resources:
       - constrainttemplates
+  - verbs:
+      - get
+      - list  
+    apiGroups:
+      - config.openshift.io
+    resources:
+      - clusterversions   
+  - verbs:
+      - get
+      - list
+    apiGroups:
+      - operator.gatekeeper.sh
+    resources:
+      - gatekeepers
+  - verbs:
+      - get
+      - list
+    apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - validatingwebhookconfigurations  

@@ -1,15 +1,25 @@
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: MaxReplicas
+apiVersion: template.openshift.io/v1
+kind: Template
 metadata:
-  name: maxreplicas
-spec:
-  enforcementAction: deny      
-  match:
-    namespaces:
-      - "petclinic-bluegreen-user0"      
-    kinds:
-      - apiGroups: ["*"]
-        kinds: ["Deployment"]
-  parameters:
-    replicas: 3
+  name: livemigrate-template
+objects:
+- apiVersion: constraints.gatekeeper.sh/v1beta1
+  kind: MaxReplicas
+  metadata:
+    name: maxreplicas
+  spec:
+    enforcementAction: deny      
+    match:
+      namespaces:
+        - "petclinic-bluegreen-${USER}"      
+      kinds:
+        - apiGroups: ["*"]
+          kinds: ["Deployment"]
+    parameters:
+      replicas: 3
+parameters:
+- name: USER
+  description: "Username"
+  required: true
+  value: ${USER}
 

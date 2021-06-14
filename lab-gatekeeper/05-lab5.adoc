@@ -31,7 +31,7 @@ Then we have to deploy constraint where we are going to define the parameters:
 
 
 ----
-oc apply -f lab-gatekeeper-files/lab5/constraint.yaml
+oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc apply -f -
 ----
 
 == Test constraint

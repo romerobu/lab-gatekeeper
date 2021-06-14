@@ -1,14 +1,24 @@
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: RequiredLabelsRoute
+apiVersion: template.openshift.io/v1
+kind: Template
 metadata:
-  name: required-label-route
-spec:
-  enforcementAction: deny     
-  match:
-    namespaces:
-      - "petclinic-bluegreen-user0"      
-    kinds:
-      - apiGroups: ["*"]
-        kinds: ["Route"]
-  parameters:
-    labels: ["app"]
+  name: livemigrate-template
+objects:
+- apiVersion: constraints.gatekeeper.sh/v1beta1
+  kind: RequiredLabelsRoute
+  metadata:
+    name: required-label-route
+  spec:
+    enforcementAction: deny
+    match:
+      namespaces:
+        - "petclinic-bluegreen-${USER}"
+      kinds:
+        - apiGroups: ["*"]
+          kinds: ["Route"]
+    parameters:
+      labels: ["app"]
+parameters:
+- name: USER
+  description: "Username"
+  required: true
+  value: ${USER}

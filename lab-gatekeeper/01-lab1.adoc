@@ -35,7 +35,7 @@ After deploying the constraint template you can deploy the constraint resource w
 - Enforcement action: deny. Deny means you won't be allowed to create the resource.
 
 ----
-oc apply -f lab-gatekeeper-files/lab1/constraint.yaml
+oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc apply -f -
 ----
 
 == Test constraint

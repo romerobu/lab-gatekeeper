@@ -35,7 +35,7 @@ For this example parameters are:
 - Enforcement action: deny.
 
 ----
-oc apply -f lab-gatekeeper-files/lab4/constraint.yaml
+oc process -f lab-gatekeeper-files/lab4/constraint.yaml -p USER=$USER  | oc apply -f -
 ----
 
 == Test constraint

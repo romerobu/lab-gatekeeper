@@ -11,4 +11,4 @@ spec:
     syncOnly:
       - group: ""
         version: "*"
-        kind: "Namespace"            
+        kind: "Namespace" 
