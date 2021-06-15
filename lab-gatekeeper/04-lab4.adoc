@@ -29,10 +29,10 @@ Then we have to deploy the constraint where we are going to define the resource 
 
 For this example parameters are:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen-$username.
-- Resource under test: Pod.
+- Namespace where the rule is implemented: `petclinic-bluegreen-$username`.
+- Resource under test: `Pod`.
 - Ratio: 3.
-- Enforcement action: deny.
+- Enforcement action: `deny`.
 
 ----
 oc process -f lab-gatekeeper-files/lab4/constraint.yaml -p USER=$USER  | oc apply -f -
@@ -47,11 +47,15 @@ For testing the negative case and how the constraint works, we are going to depl
 
 As our constraint is testing pods and we are creating a deployment we will see this resource is created but not scaled as pods don't fulfill the cconditions.
 
-If you navigate to the status section of this resource you will see why is not able to scale the pods and you will see constraint error messages "memory limit <2Gi> is higher than the maximum allowed of <1Gi>" and "cpu limit <800m> is higher than the maximum allowed of <200m>"
+If you navigate to the status section of this resource you will see why is not able to scale the pods and you will see constraint error messages `memory limit <2Gi> is higher than the maximum allowed of <1Gi>` and `cpu limit <800m> is higher than the maximum allowed of <200m>`
 
-----
+---- 
 oc apply -f lab-gatekeeper-files/lab4/deployment-app-blue-bad.yaml -n petclinic-bluegreen-$USER
 ----
+
+To see these logs, navigate to `Workloads` -> `Deployment` and `Yaml` tab:
+
+image:ratiolimit.png[ratiolimit]
 
 === Test positive case
 
@@ -63,5 +67,12 @@ oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"con
 
 As you can see we have deployed de deploymet resource with 2 replicas which has scaled good. Despite the fact that this constraint is testing Pods, if pods created by the deployment doesn't pass the constraint, those won't be created and deployment scaled replicas would be 0.
 
+image:scaleratio.png[scaleratio+
 
 
+To end this lab, delete all the resources:
+
+----
+oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
+oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-bluegreen-$USER
+----

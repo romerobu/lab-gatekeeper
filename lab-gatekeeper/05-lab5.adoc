@@ -7,15 +7,27 @@
 
 
 [Abstract]
-In this lab we are going to implement a constraint for checking existing resource before proceeding. For this constraint we are going to use the syncing feature, which will allow to check resource quotas from namespaces via data inventory.
+In this lab we are going to implement a constraint to see how the syncing feature works. 
+
+As explaing at the beginning of this course, syncing feature allows to sync objects in order to be accessible apart from the resource under test.
+
+For this example we want to verify that before deploying any pod there should be a deployed `ResourceQuota` on that `namespace`.
 
 
 :numbered:
 == Deploy constraint
 
+Before deploying any constraint, let's verify again that `Config` resource defines namespaces to be synced.
+
+----
+oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
+----
+
 === Deploy Constraint Template
 
-First of all we are going to the deploy the constraint template where we are going to define how a namespace should has a deployed resource quota for deploying any deployment resource.
+First of all we are going to the deploy the constraint template where we are going to define how a namespace should has a deployed `ResourceQuota` for deploying any deployment resource.
+
+Additionally, on this constraint you can see how data inventory is accessed using the syntax we introduced at the beginning:
 
 ----
 oc apply -f lab-gatekeeper-files/lab5/constraintTemplate.yaml
@@ -25,10 +37,9 @@ oc apply -f lab-gatekeeper-files/lab5/constraintTemplate.yaml
 
 Then we have to deploy constraint where we are going to define the parameters:
 
- - Namespace: petclinic-bluegreen-$USER
- - Resource under test: Deployment
- - Enforcement action: deny
-
+ - Namespace: `petclinic-bluegreen-$USER`.
+ - Resource under test: `Deployment`.
+ - Enforcement action: `deny`.
 
 ----
 oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc apply -f -
@@ -38,7 +49,7 @@ oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc appl
 
 === Test negative
 
-For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource "petclinic-beta-$USER" and another onw without it.
+For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-beta-$USER` and another onw without it.
 
 For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
 
@@ -46,12 +57,14 @@ For testing the negative case we are going to try to deploy an app into a namesp
 oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
 ----
 
-As there is no resource quota, you should see error message "".
+As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-bluegreen-$USER namespace doesn't contain any ResourceQuota object`.
 
 === Test positive
 
-For testing the positive case we are going to deploy an app into a namespace with a resource quota. As this deployment follows the existing constraint there shouldn't be any issue.
+For testing the positive case we are going to deploy an app into a namespace with a `ResourceQuota`. As this deployment follows the existing constraint there shouldn't be any issue.
 
 ----
 oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
 ----
+
+

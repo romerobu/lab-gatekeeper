@@ -73,19 +73,27 @@ version   4.7.12    True        False         5d      Cluster version is 4.7.12
 
 The above is an example of what you should get when running the command.
 
+Finally verify you can log in from your terminal:
+
+----
+oc login -u $USER -p $PASSWORD $OCP_API
+
+Login successful.
+----
+
 === Gatekeeper operator
 
 
-Gatekeeper operator can be installed via Red Hat Marketplace or by creating a Subscription resource. For installing an operator you need to have cluster-admin role while your user has "gatekeeper-ops-role".
+Gatekeeper operator can be installed via Red Hat Marketplace or by creating a Subscription resource. For installing an operator you need to have cluster-admin role while your user has `gatekeeper-ops-role`.
 This role limits the privileges of your user so you won't be able to run cluster wide actions but you will have enough privileges for create, get, list, delete, patch, update and watch gatekeeper resources.
 
-Furthermore you will find a Gatekeeper resource created with the basic configuration needed for logs and audit feature.
+Furthermore you will find a `Gatekeeper` resource created with the basic configuration needed for logs and audit feature.
 
-You can check the installed operator for this lab on Operators -> Installed Operators:
+You can check the installed operator for this lab on `Operators` -> `Installed Operators`:
 
 image:4.png[operator]
 
-Additionally you can check existing Gatekeeper resource with command:
+Additionally you can check existing `Gatekeeper` resource with command:
 
 WARNING: Your user only has permissions to get and list this resource.
 
@@ -93,7 +101,7 @@ WARNING: Your user only has permissions to get and list this resource.
 oc get gatekeepers gatekeeper -o yaml
 ----
 
-Otherwise you can navigate to Gatekeeper tab on the operator section:
+Otherwise you can navigate to `Gatekeeper` tab on the operator section:
 
 image:gatekeeper.png[gatekeeper]
 
@@ -136,11 +144,11 @@ oc get ValidatingWebhookConfiguration gatekeeper-validating-webhook-configuratio
 
 === Config
 
-The Config resource is a resource which can be used to define general configuration for Gatekeeper. 
+The `Config` resource is a resource which can be used to define general configuration for Gatekeeper. 
 The two main configurations we can do are Sync and Match:
 
-- Sync: replicate and sync data to OPA, so these data is available for constraints which need to access more objects that the one under test.
-- Match: list namespaces to be excluded by their names and determine the process among these options: "audit", "webhook", "sync" and "*".
+- `Sync`: replicate and sync data to OPA, so these data is available for constraints which need to access more objects that the one under test.
+- `Match`: list namespaces to be excluded by their names and determine the process among these options: "audit", "webhook", "sync" and "*".
 
 
 === Audit, Syncing and Debugging
@@ -158,8 +166,8 @@ Some of these values are:
 
 ==== Debugging
 
-Constraints must specify an enforcement action which is deny by default. Other option is dryrun mode which allows to test constraint without making actual changes while are registered as violations in the audit status section.
-Logs details are configured when creating the Gatekeeper resource. Log levels ranges between DEBUG, INFO, WARNING and ERROR.
+Constraints must specify an enforcement action which is `deny` by default. Other option is `dryrun` mode which allows to test constraint without making actual changes while are registered as violations in the audit status section.
+Logs details are configured when creating the Gatekeeper resource. Log levels ranges between `DEBUG`, `INFO`, `WARNING` and `ERROR`.
 
 Additionally in Config resource you can enable traces for some resources and a specific user. These traces will be logged to the stdout of the Gatekeeper controller.
 

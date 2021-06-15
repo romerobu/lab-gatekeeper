@@ -7,10 +7,17 @@
 
 
 [Abstract]
-This lab aims to introduce how Gatekeeper works and its basic configuration. 
-If your environment was set up properly you should be able to log in with your gatekeeper-ops-role user.
-Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints and view resources like gatekeeper and config but not cluster-admin.
+This lab aims to introduce how Gatekeeper works and its basic configuration.
+ 
+If your environment was set up properly you should be able to log in with your `gatekeeper-ops-role user`.
 
+Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints and view resources like gatekeeper and config but not `cluster-admin`.
+
+To start verify you are on your project:
+
+----
+oc project petclinic-bluegreen-$USER
+----
 
 == Deploy constraint
 
@@ -29,10 +36,10 @@ As you can see, this constraint template is written using the rego syntax mentio
 
 After deploying the constraint template you can deploy the constraint resource which defines:
 
-- Namespace where the rule is implemented: petclinic-bluegreen-$USER.
-- Resource under test: Deployment.
+- Namespace where the rule is implemented: `petclinic-bluegreen-$USER`.
+- Resource under test: `Deployment`.
 - Replicas parameter: 3.
-- Enforcement action: deny. Deny means you won't be allowed to create the resource.
+- Enforcement action: `deny`. Deny means you won't be allowed to create the resource.
 
 ----
 oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc apply -f -
@@ -54,10 +61,10 @@ As you can see, you are allowed to create the resources and there is no violatio
 oc get constraint maxreplicas -o yaml
 ----
 
-On the status section you can see two sections:
+On the `status` section you can see two sections:
 
- - auditTimestamp: this timestamp indicates when the last check happened. This frequency can be overrided on gatekeeper resource.
- - byPod: this section shows three pods created on "openshift-gatekeeper-system" namespace. This pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
+ - `auditTimestamp`: this timestamp indicates when the last check happened. This frequency can be overrided on gatekeeper resource.
+ - `byPod`: this section shows three pods created on `openshift-gatekeeper-system` namespace. This pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
 
 Finally verify to can navigate to the app you just deployed:
 
@@ -73,7 +80,8 @@ For testing a negative case where deployment doesn't accomplish the constraint r
 oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"replicas":5}}' --type merge
 ----
 
-As you can see you cannot create this deployment resource and you are prompted with error message "Deployment 5 pods is higher than the maximum allowed of 3". This error message is customized on constraint resource.
+As you can see you cannot create this deployment resource and you are prompted with error message `Deployment 5 pods is higher than the maximum allowed of 3`. This error message is customized on constraint resource.
+
 Furthermore as you weren't allowed to create the resource, there won't be any non-compliance resource so constraint won't be hooked and there should not be any violation on status section.
 
 WARNING: Audit interval is 60 seconds by default, so you may need to wait this time to see any update.

@@ -27,14 +27,14 @@ oc apply -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml
 
 === Deploy Constraint 
 
-Additionally we need to deploy the constraints where we are going to limite the impact to "petclinic-bluegreen-$USER" namespace and specify the required label.
+Additionally we need to deploy the constraints where we are going to limite the impact to `petclinic-bluegreen-$USER` namespace and specify the required label.
 
 For this example parameters are:
 
-- Namaspace where the rule is implemented: petclinic-bluegreen-$USER.
-- Resource under test: Deployment, Service and Route.
-- Required label: "app".
-- Enforcement action: deny.
+- Namaspace where the rule is implemented: `petclinic-bluegreen-$USER`.
+- Resource under test: `Deployment`, `Service` and `Route`.
+- Required label: `app`.
+- Enforcement action: `deny`.
 
 ----
 oc process -f lab-gatekeeper-files/lab2/constraint-deployment.yaml -p USER=$USER  | oc apply -f -
@@ -46,7 +46,7 @@ oc process -f lab-gatekeeper-files/lab2/constraint-svc.yaml -p USER=$USER  | oc 
 
 === Test positive case
 
-For testing the positive case we are going to deploy these resources to the allowed namespace "petclinic-bluegreen-$USER".
+For testing the positive case we are going to deploy these resources to the allowed namespace `petclinic-bluegreen-$USER`.
 You should expect these resources to be deployed properly because they accomplish the constraints.
 
 ----
@@ -57,7 +57,7 @@ oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-bluegree
 
 For testing the negative case we are going to deploy a set of non-compliance resources to the namespaces.
 
-As these resource don't include the required label you should be prompted with error message "You must provide labels: {"app"}" as they don't have the required labels.
+As these resource don't include the required label you should be prompted with error message `You must provide labels: {"app"}" as they don't have the required labels`.
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$USER
@@ -65,9 +65,9 @@ oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegre
 
 == Dryrun
 
-The recently deployed constraints were created as in the first lab with enforcement mode to "deny" however gatekeeper offers other mode called "dryrun" which enables constraints to be deployed without enforcing them. This means that non compliance resources will be created but violations will be audited.
+The recently deployed constraints were created as in the first lab with enforcement mode to `deny` however gatekeeper offers other mode called `dryrun` which enables constraints to be deployed without enforcing them. This means that non compliance resources will be created but violations will be audited.
 
-If we patch the existing constraints to change the enforcement mode to "dryrun" and the try to redeploy the resources we should be able to create all of them but violations will be registered on the status section.
+If we patch the existing constraints to change the enforcement mode to `dryrun` and the try to redeploy the resources we should be able to create all of them but violations will be registered on the status section.
 
 ----
 oc patch requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
