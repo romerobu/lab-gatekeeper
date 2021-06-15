@@ -7,6 +7,10 @@ TMP_FILE=users-tmp
 
 # will be ask for password if not set in coxtext yet
 oc login -u $CLUSTER_ADMIN_USER $OCP_API
+
+# Create oauth
+oc apply -f lab-gatekeeper-files/role/oauth-config.yaml
+
 oc get secret htpasswd -n openshift-config -o yaml \
   | grep htpasswd | grep -v "{}" \
   | awk -F": " '{print $2}' | base64 -d > $TMP_FILE
@@ -27,15 +31,6 @@ rm -rf $TMP_FILE
 echo "Waiting some time to get OAuth configured..."
 sleep 30
 echo "OAuth should has been now updated"
-# cat $PATH_TO_USERS_FILE | while read line ;
-# do 
-#     user=`echo $line | awk -F# '{print $1}'`
-#     pass=`echo $line | awk -F# '{print $2}'`
-#     ns=`echo $line | awk -F# '{print $3}'`
-#     oc login -u $user -p $pass $OCP_API
-#     # create ns
-#     oc new-project $ns
-# done
 
 # Set up gatekeeper operator
 
