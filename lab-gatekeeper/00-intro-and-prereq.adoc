@@ -41,7 +41,7 @@ Use the `*$OCP_CONSOLE*` url to acces the Openshift Web Console.
 
 A login screen will be shown as follow:
 
-image:1.png[login]
+image:login.png[login]
 
 Enter your `username` and `password` and click `Log In`.
 
@@ -55,11 +55,11 @@ It is time to get the Openshift CLI binaries for your specific OS.
 
 On the top-right (?) menu, click on `Command line tools`:
 
-image:2.png[menu]
+image:menu.png[menu]
 
 Then, choose the binaries according to your OS:
 
-image:3.png[binaries]
+image:binaries.png[binaries]
 
 
 Extract the binaries and try it by executing the following:
@@ -91,7 +91,7 @@ Furthermore you will find a `Gatekeeper` resource created with the basic configu
 
 You can check the installed operator for this lab on `Operators` -> `Installed Operators`:
 
-image:4.png[operator]
+image:operator.png[operator]
 
 Additionally you can check existing `Gatekeeper` resource with command:
 

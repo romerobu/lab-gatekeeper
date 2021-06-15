@@ -39,7 +39,7 @@ echo "OAuth should has been now updated"
 
 # Set up gatekeeper operator
 
-oc apply -f lab-gatekeeper-files/petclinic/install-operator.yaml
+oc apply -f config/install-operator.yaml
 
 echo -n "Waiting for pods ready..."
 while [[ $(oc get pods  -n openshift-operators  -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do echo -n "." && sleep 1; done; echo -n -e "  [OK]\n"
@@ -49,7 +49,7 @@ sleep 5
 # Create gatekeeper instance
 
 echo -n "Creating gatekeeper..."
-oc apply -f lab-gatekeeper-files/petclinic/create-gatekeeper.yaml
+oc apply -f config/create-gatekeeper.yaml
 
 echo -n "Waiting for pods ready..."
 while [[ $(oc get pods  -n openshift-gatekeeper-system  -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True True True" ]]; do echo -n "." && sleep 1; done; echo -n -e "  [OK]\n"
@@ -59,8 +59,11 @@ sleep 5
 # Deploy config
 
 echo -n "Deploying config..."
-#oc apply -f lab-gatekeeper-files/petclinic/config.yaml
 oc process -f config/config.yaml  -p USER=$USER  | oc apply -f -
+
+# Creating role
+
+oc apply -f lab-gatekeeper-files/role/clusterrole.yaml
 
 # Create namespace and add roles
 oc get secret htpasswd -n openshift-config -o yaml \
