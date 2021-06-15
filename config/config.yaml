@@ -14,7 +14,19 @@ spec:
     - excludedNamespaces: ["petclinic-beta-admin"]
       processes: ["webhook"]        
     - excludedNamespaces: ["petclinic-beta-taraujo"]
-      processes: ["webhook"]        
+      processes: ["webhook"]   
+    - excludedNamespaces: ["petclinic-beta-user1"]
+      processes: ["webhook"]      
+    - excludedNamespaces: ["petclinic-beta-user2"]
+      processes: ["webhook"]
+    - excludedNamespaces: ["petclinic-beta-user3"]
+      processes: ["webhook"]
+    - excludedNamespaces: ["petclinic-beta-user4"]
+      processes: ["webhook"]
+    - excludedNamespaces: ["petclinic-beta-user5"]
+      processes: ["webhook"]
+    - excludedNamespaces: ["petclinic-beta-user6"]
+      processes: ["webhook"]      
   sync:
     syncOnly:
       - group: ""

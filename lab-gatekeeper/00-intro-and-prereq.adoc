@@ -175,8 +175,8 @@ Additionally in Config resource you can enable traces for some resources and a s
 
 Config resource defines a list of object to be synced by defining group, version and kind. Once this list of objects is synced, they can be accesed via data inventory document following this structure:
 
- -  data.inventory.cluster-group-kind-name
- -  data.inventory.namespace-group-kind-name
+ -  `data.inventory.cluster-group-kind-name`
+ -  `data.inventory.namespace-group-kind-name`
 
 This feature is interesting not only for its potential to improve performance but it allows to implement rules which require access to other resources than the one observed directly by the rule.
 
