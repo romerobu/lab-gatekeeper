@@ -2,7 +2,7 @@
 
 
 # init users
-sudo ./init-ocp-user.sh kubeadmin https://api.cluster-6c23.sandbox1059.opentlc.com:6443  users/user-redhat.list
+sudo ./init-ocp-user.sh kubeadmin https://api.cluster-4a3f.sandbox453.opentlc.com:6443  users/user-redhat.list
 
 
 #Run lab local
@@ -27,12 +27,12 @@ sudo ./deploy-lab.sh lab-gatekeeper latest  env/cromerob.env
 
 ------------------------------------
 
-export OCP_CONSOLE=https://console-openshift-console.apps.cluster-6c23.sandbox1059.opentlc.com
+export OCP_CONSOLE=https://console-openshift-console.apps.cluster-4a3f.sandbox453.opentlc.com
 
-export OCP_API=https://api.cluster-6c23.sandbox1059.opentlc.com:6443
+export OCP_API=https://api.cluster-4a3f.sandbox453.opentlc.com:6443
 
 export OCP_USER=kubeadmin
 
-export OCP_PASSWORD=ycN8H-YC2zv-zkJvD-v4vBA
+export OCP_PASSWORD=h6Wss-s3unH-ZCmNp-7LYLK
 
 export APPS_NS=deploy-app

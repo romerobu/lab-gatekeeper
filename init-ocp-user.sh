@@ -8,28 +8,40 @@ TMP_FILE=users-tmp
 # will be ask for password if not set in coxtext yet
 oc login -u $CLUSTER_ADMIN_USER $OCP_API
 
-# Create oauth
-oc apply -f lab-gatekeeper-files/role/oauth-config.yaml
-
-oc get secret htpasswd -n openshift-config -o yaml \
-  | grep htpasswd | grep -v "{}" \
-  | awk -F": " '{print $2}' | base64 -d > $TMP_FILE
 cat $PATH_TO_USERS_FILE | while read line ;
-do 
+do
     user=`echo $line | awk -F# '{print $1}'`
     pass=`echo $line | awk -F# '{print $2}'`
     # add user to htpasswd file
     htpasswd -nbm $user $pass  >> $TMP_FILE
 done
+
+echo "TMP_FILE ----"
+
 cat $TMP_FILE
+
 USERS_CONTENT=`cat $TMP_FILE | base64 -w 0`
+
+echo "USERS_CONTENT----"
+
 echo "$USERS_CONTENT"
+
+oc create secret generic htpasswd --from-file=$TMP_FILE -n openshift-config
+
+sleep 5
+
 oc patch secret  htpasswd --type='json' \
-  -p='[{"op": "add", "path": "/data/htpasswd", "value":"'${USERS_CONTENT}'"}]' \
-  -n openshift-config
+ -p='[{"op": "add", "path": "/data/htpasswd", "value":"'${USERS_CONTENT}'"}]' \
+ -n openshift-config
+
+sleep 3
+
+# create oauth
+oc replace -f lab-gatekeeper-files/role/oauth-config.yaml
+
 rm -rf $TMP_FILE
 echo "Waiting some time to get OAuth configured..."
-sleep 30
+sleep 60
 echo "OAuth should has been now updated"
 
 # Set up gatekeeper operator
@@ -54,7 +66,9 @@ sleep 5
 # Deploy config
 
 echo -n "Deploying config..."
-oc process -f config/config.yaml  -p USER=$USER  | oc apply -f -
+oc apply -f config/config.yaml
+
+sleep 5
 
 # Creating role
 

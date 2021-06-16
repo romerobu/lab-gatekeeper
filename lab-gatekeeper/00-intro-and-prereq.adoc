@@ -39,7 +39,7 @@ $ git clone https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper.git
 
 Use the `*$OCP_CONSOLE*` url to acces the Openshift Web Console. 
 
-A login screen will be shown as follow:
+A login screen will be shown as follow after selecting `Local Password`:
 
 image:login.png[login]
 
@@ -77,8 +77,14 @@ Finally verify you can log in from your terminal:
 
 ----
 oc login -u $USER -p $PASSWORD $OCP_API
-
 Login successful.
+
+You have access to the following projects and can switch between them with ' project <projectname>':
+
+  * openshift-gatekeeper-system
+    openshift-operators
+    petclinic-beta-$USER
+    petclinic-bluegreen-$USER
 ----
 
 === Gatekeeper operator
