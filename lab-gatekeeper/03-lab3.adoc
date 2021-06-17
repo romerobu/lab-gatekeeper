@@ -24,12 +24,45 @@ As mentioned we need to create a config resource to exclude some processes from 
 oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
 ----
 
+You will see there is a list of namespaces excluded for webhook process, this is because it centralizes the configuration for all the users in this lab.
+
+
 === Deploy Constraint Template
 
 First we need to deploy the constraint templates where we are going to check the existing name of the object under test.
 
 ----
 oc apply -f lab-gatekeeper-files/lab3/constraintTemplate.yaml
+----
+
+If you take a look to this template, you will see in this case you are using `contains` verification.
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: requiredroutename
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequiredRouteName
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            name:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requiredroutename
+        violation[{"msg": msg}] {
+          provided := input.review.object.metadata.name
+          required := input.parameters.name
+          not contains(provided,required)
+          msg := sprintf("Route must include string: %v", [required])
+        }
 ----
 
 === Deploy Constraint 
@@ -52,7 +85,7 @@ oc process -f lab-gatekeeper-files/lab3/constraint.yaml -p USER=$USER  | oc appl
 
 === Test negative case
 
-In this lab we are going to test how constraint applies to existing resources. For this test we are going to check the status of the constraint as the existing route's name doesn't fulfil the requirements.
+In this lab we are going to test how constraint applies to existing resources from the last exercise. For this test we are going to check the status of the constraint as the existing route's name doesn't fulfil the requirements.
 
 ----
 oc get requiredroutename.constraints.gatekeeper.sh/required-route-name -o yaml

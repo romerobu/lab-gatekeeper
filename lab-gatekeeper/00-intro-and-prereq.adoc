@@ -1,4 +1,8 @@
-= Lab 0 - Warming up
+image:logoopenshift.png[logoopenshift]
+image:logokubernetes.png[logokubernetes]
+image:logogatekeeper.svg[logogatekeeper]
+
+= Introduction & Warm up
 :author: Coral Romero
 :email: cromerob@redhat.com
 :imagesdir: ./images
@@ -45,7 +49,7 @@ image:login.png[login]
 
 Enter your `username` and `password` and click `Log In`.
 
-If you have successfully logged in, you will arrive to the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
+If you have successfully logged in, you will landed at the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
 
 image:namespaces.png[namespaces]
 
@@ -90,8 +94,8 @@ You have access to the following projects and can switch between them with ' pro
 === Gatekeeper operator
 
 
-Gatekeeper operator can be installed via Red Hat Marketplace or by creating a Subscription resource. For installing an operator you need to have cluster-admin role while your user has `gatekeeper-ops-role`.
-This role limits the privileges of your user so you won't be able to run cluster wide actions but you will have enough privileges for create, get, list, delete, patch, update and watch gatekeeper resources.
+Gatekeeper operator can be installed via Red Hat Marketplace or by creating a Subscription resource. For installing an operator you need to have `cluster-admin` role while your user has `gatekeeper-ops-role`.
+This role limits the privileges of your user so you won't be able to run cluster wide actions but you will have enough privileges for create, get, list, delete, patch, update and watch gatekeeper resources among others.
 
 Furthermore you will find a `Gatekeeper` resource created with the basic configuration needed for logs and audit feature.
 

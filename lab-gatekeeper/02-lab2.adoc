@@ -11,13 +11,47 @@ In this second lab we are going to verify that every service, route and deployme
 
 As we are testing different kinds of resources like Deployment, Route and Service, we are going to deploy different constraints. 
 
-
 :numbered:
 == Deploy constraint
 
 === Deploy Constraint Template
 
 First we need to deploy the constraint templates where we are going to check the existing labels of the object under test and use the substraction operator to check any missing label.
+
+If you take a look to one of the templates you will see in this case we are doing a subtraction between array of labels.
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: requiredlabelssvc
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequiredLabelsSvc
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            labels:
+              type: array
+              items: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requiredlabelssvc
+        violation[{"msg": msg, "details": {"missing_labels": missing}}] {
+          provided := {label | input.review.object.metadata.labels[label]}
+          required := {label | label := input.parameters.labels[_]}
+          missing := required - provided
+          count(missing) > 0
+          msg := sprintf("You must provide labels: %v", [missing])
+        }
+
+----
+
+You can deploy the templates with this command:
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/constraintTemplateDeployment.yaml

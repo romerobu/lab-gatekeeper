@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: livemigrate-template
+  name: template-requiredlabel-deployment
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
   kind: RequiredLabelsDeployment

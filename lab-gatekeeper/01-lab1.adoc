@@ -24,6 +24,38 @@ oc project petclinic-bluegreen-$USER
 === Deploy ConstraintTemplate
 
 First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
+
+If you take a look to the template you will see first the type of value you will comparte your replicas with and the pattern of the rule.
+Finally the error message it will be prompted when the webhook triggers this constraint.
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: maxreplicas
+spec:
+  crd:
+    spec:
+      names:
+        kind: MaxReplicas
+      validation:
+        openAPIV3Schema:
+          properties:
+            replicas:
+              type: integer 
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package maxreplicas
+
+        violation[{"msg": msg}] {
+          replicas := input.review.object.spec.replicas
+          max_replicas := input.parameters.replicas
+          to_number(replicas) > to_number(max_replicas)
+          msg := sprintf("Deployment %v pods is higher than the maximum allowed of %v", [replicas, max_replicas])
+        }
+----
+
 You can deploy it with this command:
 
 ----
@@ -41,6 +73,38 @@ After deploying the constraint template you can deploy the constraint resource w
 - Replicas parameter: 3.
 - Enforcement action: `deny`. Deny means you won't be allowed to create the resource.
 
+If you take a look to the constraint you will see how those values are specified on the resource as well as the template format.
+Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
+
+----
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: template-maxreplicas
+objects:
+- apiVersion: constraints.gatekeeper.sh/v1beta1
+  kind: MaxReplicas
+  metadata:
+    name: maxreplicas
+  spec:
+    enforcementAction: deny      
+    match:
+      namespaces:
+        - "petclinic-bluegreen-${USER}"      
+      kinds:
+        - apiGroups: ["*"]
+          kinds: ["Deployment"]
+    parameters:
+      replicas: 3
+parameters:
+- name: USER
+  description: "Username"
+  required: true
+  value: ${USER}
+----
+
+You can deploy it with this command:
+
 ----
 oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc apply -f -
 ----
@@ -49,7 +113,7 @@ oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc appl
 
 === Test positive case
 
-For testing a positive case where deployment accomplish the constraint run this command to deploy a deployment whose replicas value is 2:
+For testing a positive case where a deployment accomplish the constraint run this command to deploy an app whose deployment replicas value is 2:
 
 ----
 oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
@@ -61,7 +125,7 @@ As you can see, you are allowed to create the resources and there is no violatio
 oc get constraint maxreplicas -o yaml
 ----
 
-On the `status` section you can see two sections:
+On the `status` part you can see two sections:
 
  - `auditTimestamp`: this timestamp indicates when the last check happened. This frequency can be overrided on gatekeeper resource.
  - `byPod`: this section shows three pods created on `openshift-gatekeeper-system` namespace. This pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
