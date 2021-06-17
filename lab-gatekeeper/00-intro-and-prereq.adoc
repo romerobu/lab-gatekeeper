@@ -1,6 +1,6 @@
 image:logoopenshift.png[logoopenshift]
 image:logokubernetes.png[logokubernetes]
-image:logogatekeeper.svg[logogatekeeper]
+image:logogatekeeper.svg[logogatekeeper, width=200, height=200]
 
 = Introduction & Warm up
 :author: Coral Romero
