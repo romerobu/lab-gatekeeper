@@ -25,7 +25,7 @@ oc project petclinic-bluegreen-$USER
 
 First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
 
-If you take a look to the template you will see first the type of value you will comparte your replicas with and the pattern of the rule.
+If you take a look to the template you will see first the type of value you will compare your replicas with and the pattern of the rule.
 Finally the error message it will be prompted when the webhook triggers this constraint.
 
 ----
@@ -56,6 +56,46 @@ spec:
         }
 ----
 
+You can deploy constraints both from the web console or cli:
+
+*Web console*:
+
+Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` version.
+
+Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
+
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: maxreplicas
+spec:
+  crd:
+    spec:
+      names:
+        kind: MaxReplicas
+      validation:
+        openAPIV3Schema:
+          properties:
+            replicas:
+              type: integer 
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package maxreplicas
+
+        violation[{"msg": msg}] {
+          replicas := input.review.object.spec.replicas
+          max_replicas := input.parameters.replicas
+          to_number(replicas) > to_number(max_replicas)
+          msg := sprintf("Deployment %v pods is higher than the maximum allowed of %v", [replicas, max_replicas])
+        }
+----
+
+*CLI*:
+
 You can deploy it with this command:
 
 ----
@@ -74,6 +114,32 @@ After deploying the constraint template you can deploy the constraint resource w
 - Enforcement action: `deny`. Deny means you won't be allowed to create the resource.
 
 If you take a look to the constraint you will see how those values are specified on the resource as well as the template format.
+
+*WebConsole*:
+
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a nex CRD called `MaxReplicas` in the main menu. 
+Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: MaxReplicas
+metadata:
+  name: maxreplicas
+spec:
+  enforcementAction: deny      
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
+  parameters:
+    replicas: 3
+----
+
+
+*CLI*:
+
 Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
 
 ----
@@ -113,6 +179,8 @@ oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc appl
 
 === Test positive case
 
+*CLI*:
+
 For testing a positive case where a deployment accomplish the constraint run this command to deploy an app whose deployment replicas value is 2:
 
 ----
@@ -136,7 +204,28 @@ Finally verify to can navigate to the app you just deployed:
  oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
 ----
 
+*Web Console*:
+
+To deploy your resources go to `Workloads` and `Netoworking`, then on `Deployment`, `Services` and `Routes` selector your namespaces `petclinic-bluegreen-$USER` and click on `Create`.
+
+image:svc.png[service]
+
+
+Finally paste the corresponding section of the yaml description.
+
+----
+cat lab-gatekeeper-files/lab1/deploy-app-blue.yaml
+----
+
+After doing this you should be able to access the route:
+
+----
+oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
+----
+
 === Test negative case
+
+*CLI*:
 
 For testing a negative case where deployment doesn't accomplish the constraint run this command to patch current replicas value to 5:
 
@@ -149,6 +238,12 @@ As you can see you cannot create this deployment resource and you are prompted w
 Furthermore as you weren't allowed to create the resource, there won't be any non-compliance resource so constraint won't be hooked and there should not be any violation on status section.
 
 WARNING: Audit interval is 60 seconds by default, so you may need to wait this time to see any update.
+
+*Web Console*:
+
+To deploy your resources go to `Workloads` , then on `Deployment` and select your deployment `quarkus-petclinic-blue`. Then on `Yaml` tab edit the replicas amout to 5. Finally click on `Save`.
+
+As you can see you cannot create this deployment resource and you are prompted with error message `Deployment 5 pods is higher than the maximum allowed of 3`.
 
 
 To end this lab, delete every resource:
