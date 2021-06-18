@@ -51,6 +51,48 @@ spec:
 
 ----
 
+You can deploy constraints both from the web console or cli:
+
+*Web console*:
+
+Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` version.
+
+Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
+
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: requiredlabelssvc
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequiredLabelsSvc
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            labels:
+              type: array
+              items: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requiredlabelssvc
+        violation[{"msg": msg, "details": {"missing_labels": missing}}] {
+          provided := {label | input.review.object.metadata.labels[label]}
+          required := {label | label := input.parameters.labels[_]}
+          missing := required - provided
+          count(missing) > 0
+          msg := sprintf("You must provide labels: %v", [missing])
+        }
+----
+
+*CLI*:
+
 You can deploy the templates with this command:
 
 ----
@@ -70,6 +112,68 @@ For this example parameters are:
 - Required label: `app`.
 - Enforcement action: `deny`.
 
+*WebConsole*:
+
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list three  CRDs called `RequiredLabelsDeployment`, `RequiredLabelsSvc` and `RequiredLabelsRoute` in the main menu.
+Repeat the same procedure for these new CRDs and paste your yaml definition after changing the ${USER} value for your username:
+
+WARNING: It may take a while till those are listed.
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequiredLabelsSvc
+metadata:
+  name: required-label-service
+spec:
+  enforcementAction: deny       
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Service"]
+  parameters:
+    labels: ["app"]
+----
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequiredLabelsSvc
+metadata:
+  name: required-label-service
+spec:
+  enforcementAction: deny       
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Service"]
+  parameters:
+    labels: ["app"]
+----
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequiredLabelsDeployment
+metadata:
+  name: required-label-deployment
+spec:
+  enforcementAction: deny
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
+  parameters:
+    labels: ["app"]
+----
+
+*CLI*:
+
+Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
+
 ----
 oc process -f lab-gatekeeper-files/lab2/constraint-deployment.yaml -p USER=$USER  | oc apply -f -
 oc process -f lab-gatekeeper-files/lab2/constraint-route.yaml -p USER=$USER  | oc apply -f -
@@ -83,6 +187,18 @@ oc process -f lab-gatekeeper-files/lab2/constraint-svc.yaml -p USER=$USER  | oc 
 For testing the positive case we are going to deploy these resources to the allowed namespace `petclinic-bluegreen-$USER`.
 You should expect these resources to be deployed properly because they accomplish the constraints.
 
+*WebConsole*:
+
+To deploy your resources go to `Workloads` and `Netoworking`, then on `Deployment`, `Services` and `Routes` selector your namespaces `petclinic-bluegreen-$USER` and click on `Create`.
+
+Finally paste the corresponding section of the yaml description.
+
+----
+cat lab-gatekeeper-files/lab2/deploy-app-blue.yaml
+----
+
+*CLI*:
+
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 ----
@@ -93,6 +209,18 @@ For testing the negative case we are going to deploy a set of non-compliance res
 
 As these resource don't include the required label you should be prompted with error message `You must provide labels: {"app"}" as they don't have the required labels`.
 
+*Web Console*:
+
+To deploy your resources go to `Workloads` and `Networking`, then on `Deployment`, `Services` and `Routes` selector your namespaces `petclinic-bluegreen-$USER` and click on `Create`.
+
+Finally paste the corresponding section of the yaml description.
+
+----
+cat lab-gatekeeper-files/lab2/deploy-app-blue.yaml
+----
+
+*CLI*:
+
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$USER
 ----
@@ -102,6 +230,25 @@ oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegre
 The recently deployed constraints were created as in the first lab with enforcement mode to `deny` however gatekeeper offers other mode called `dryrun` which enables constraints to be deployed without enforcing them. This means that non compliance resources will be created but violations will be audited.
 
 If we patch the existing constraints to change the enforcement mode to `dryrun` and the try to redeploy the resources we should be able to create all of them but violations will be registered on the status section.
+
+*Web Console*:
+
+To deploy your resources go to `Explore`, search `RequiredLabelsDeployment` , `RequiredLabelsRoute` and `RequiredLabelsSvc`  and then go to `Instances` tab and select yours. Then on `Yaml` tab edit the enforcement mode to `dryrun`. Finally click on `Save`.
+
+image:dryrun.png[dryrun]
+
+Now let's try to redeploy the missing labels resources. Go to `Workloads` and `Networking`, then on `Deployment`, `Services` and `Routes` selector your namespaces `petclinic-bluegreen-$USER` and click on `Create`.
+
+Finally paste the corresponding section of the yaml description.
+
+----
+cat lab-gatekeeper-files/lab2/deploy-app-blue.yaml
+----
+
+
+*CLI*:
+
+Patch the enforcement mode using the oc client:
 
 ----
 oc patch requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
@@ -119,6 +266,14 @@ oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegre
 Finally check the status of the violated constraints:
 
 WARNING: You may need to wait the audit interval time till status is updated.
+
+*Web Console*:
+
+Navigate to your constraint resource, select your instance and take a look at the status section at `Yaml` tab:
+
+image:status.png[status]
+
+*CLI*:
 
 ----
 oc get requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment -o yaml
