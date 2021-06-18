@@ -115,6 +115,7 @@ For this example parameters are:
 *WebConsole*:
 
 After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list three  CRDs called `RequiredLabelsDeployment`, `RequiredLabelsSvc` and `RequiredLabelsRoute` in the main menu.
+
 Repeat the same procedure for these new CRDs and paste your yaml definition after changing the ${USER} value for your username:
 
 WARNING: It may take a while till those are listed.

@@ -20,9 +20,19 @@ Previously we are going to create a `Config` resource to exclude `webhook` proce
 
 As mentioned we need to create a config resource to exclude some processes from a namespace, `webhook` for `petclinic-beta-$USER`. This is a cluster wide resource which should be created by an user with cluster-admin privileges so you can check the existing resource with this command:
 
+*CLI*:
+
 ----
 oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
 ----
+
+*Web Console*:
+
+Go to `Explore`, search for `Config`, then on the upper banner select `openshift-gatekeeper-system` namespace ans select your instance.
+
+Finally you will be able to see the yaml definition:
+
+image:configinstance.png[configinstance]
 
 You will see there is a list of namespaces excluded for webhook process, this is because it centralizes the configuration for all the users in this lab.
 
@@ -30,6 +40,8 @@ You will see there is a list of namespaces excluded for webhook process, this is
 === Deploy Constraint Template
 
 First we need to deploy the constraint templates where we are going to check the existing name of the object under test.
+
+*CLI*: 
 
 ----
 oc apply -f lab-gatekeeper-files/lab3/constraintTemplate.yaml
@@ -65,6 +77,43 @@ spec:
         }
 ----
 
+*Web Console*:
+
+Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` version.
+
+Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
+
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: requiredroutename
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequiredRouteName
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            name:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requiredroutename
+        violation[{"msg": msg}] {
+          provided := input.review.object.metadata.name
+          required := input.parameters.name
+          not contains(provided,required)
+          msg := sprintf("Route must include string: %v", [required])
+        }
+----
+
+
 === Deploy Constraint 
 
 Additionally we need to deploy the constraints where we are going to limit the impact to `petclinic-bluegreen-$USER` and `petclinic-beta-$USER`  namespace and specify the required name.
@@ -76,9 +125,38 @@ For this example parameters are:
 - Required name: `route-petclinic-bluegreen`.
 - Enforcement action: `deny`.
 
+*CLI*:
+
 ----
 oc process -f lab-gatekeeper-files/lab3/constraint.yaml -p USER=$USER  | oc apply -f -
 ----
+
+*Web Console*:
+
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredRouteName` in the main menu.
+
+Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
+
+WARNING: It may take a while till those are listed.
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequiredRouteName
+metadata:
+  name: required-route-name
+spec:
+  enforcementAction: deny      
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"     
+      - "petclinic-beta-${USER}"  
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Route"]
+  parameters:
+    name: route-petclinic-bluegreen
+----
+
 
 == Test constraint
 
@@ -87,9 +165,17 @@ oc process -f lab-gatekeeper-files/lab3/constraint.yaml -p USER=$USER  | oc appl
 
 In this lab we are going to test how constraint applies to existing resources from the last exercise. For this test we are going to check the status of the constraint as the existing route's name doesn't fulfil the requirements.
 
+*CLI*:
+
 ----
 oc get requiredroutename.constraints.gatekeeper.sh/required-route-name -o yaml
 ----
+
+*Web Console*:
+
+Navigate to your constraint resource, select your instance and take a look at the status section at `Yaml` tab:
+
+image:statusroute.png[statusroute]
 
 As you can see there is a violation detected for resource `Route`  with error message `Route must include string: route-petclinic-bluegreen`.
 
@@ -99,9 +185,11 @@ For the second namespace `petclinic-beta-$USER` as webhook process is excluded i
 oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$USER
 ----
 
-=== Test postive case
+=== Test positive case
 
 As the existing route's name is not valid we are going to redeploy it for a valid format so there will be no violation alert.
+
+*CLI*:
 
 ----
 oc delete all --selector app=quarkus-petclinic-blue -n petclinic-bluegreen-$USER
@@ -120,3 +208,88 @@ To finish this lab, delete all the resources:
 ----
 oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
 ----
+
+
+*Web Console*:
+
+First you need to delete manually the existing resources:
+
+Go to `Workloads` and `Deployments`. Select `petclinic-bluegreen-$USER` namespace and delete the deployment containint the label `app=quarkus-petclinic-blue`. Now change namespace to `petclinic-beta-$USER` and delete the deployment containing the label `gatekeeper=quarkus-petclinic-green`.
+
+Once your namespaces are empty deploy these reources as in the previous labs in namespace `petclinic-bluegreen-$USER`:
+
+----
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-petclinic-blue
+  template:
+    metadata:
+      labels:
+        app: quarkus-petclinic-blue
+        deployment: quarkus-petclinic-blue
+    spec:
+      containers:
+        - name: quarkus-petclinic
+          image: 'quay.io/dsanchor/quarkus-petclinic:in-mem'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+----
+
+----
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: route-petclinic-bluegreen
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  to:
+    kind: Service
+    name: quarkus-petclinic-blue
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  wildcardPolicy: None
+----
+
+----
+kind: Service
+apiVersion: v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: quarkus-petclinic-blue
+    deployment: quarkus-petclinic-blue
+  type: ClusterIP
+  sessionAffinity: None
+----
+
+To finish this lab, delete all the resources you just created.
+
+ 
