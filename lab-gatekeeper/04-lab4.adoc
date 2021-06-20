@@ -19,9 +19,274 @@ For this constraint apart from implement the comparison between input values, we
 
 First of all we are going to the deploy the constraint template where we are going to define how to parse the units and violation for ratio for cpu and memory.
 
+*CLI*:
+
 ----
 oc apply -f lab-gatekeeper-files/lab4/constraintTemplate.yaml
 ----
+
+*Web Console*:
+
+Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` version.
+
+Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
+
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: containerratio
+  annotations:
+    description: Sets a maximum ratio for container resource limits to requests.
+spec:
+  crd:
+    spec:
+      names:
+        kind: ContainerRatio
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            ratio:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package containerratio
+
+        missing(obj, field) = true {
+          not obj[field]
+        }
+        
+        missing(obj, field) = true {
+          obj[field] == ""
+        }
+        
+        canonify_cpu(orig) = new {
+          is_number(orig)
+          new := orig * 1000
+        }
+        
+        canonify_cpu(orig) = new {
+          not is_number(orig)
+          endswith(orig, "m")
+          new := to_number(replace(orig, "m", ""))
+        }
+        
+        canonify_cpu(orig) = new {
+          not is_number(orig)
+          not endswith(orig, "m")
+          re_match("^[0-9]+$", orig)
+          new := to_number(orig) * 1000
+        }
+        
+        canonify_cpu(orig) = new {
+          not is_number(orig)
+          not endswith(orig, "m")
+          re_match("^[0-9]+[.][0-9]+$", orig)
+          new := to_number(orig) * 1000
+        }
+        
+        # 10 ** 21
+        mem_multiple("E") = 1000000000000000000000 { true }
+        
+        # 10 ** 18
+        mem_multiple("P") = 1000000000000000000 { true }
+        
+        # 10 ** 15
+        mem_multiple("T") = 1000000000000000 { true }
+        
+        # 10 ** 12
+        mem_multiple("G") = 1000000000000 { true }
+        
+        # 10 ** 9
+        mem_multiple("M") = 1000000000 { true }
+        
+        # 10 ** 6
+        mem_multiple("k") = 1000000 { true }
+        
+        # 10 ** 3
+        mem_multiple("") = 1000 { true }
+        
+        # Kubernetes accepts millibyte precision when it probably shouldn't.
+        # https://github.com/kubernetes/kubernetes/issues/28741
+        # 10 ** 0
+        mem_multiple("m") = 1 { true }
+        
+        # 1000 * 2 ** 10
+        mem_multiple("Ki") = 1024000 { true }
+        
+        # 1000 * 2 ** 20
+        mem_multiple("Mi") = 1048576000 { true }
+        
+        # 1000 * 2 ** 30
+        mem_multiple("Gi") = 1073741824000 { true }
+        
+        # 1000 * 2 ** 40
+        mem_multiple("Ti") = 1099511627776000 { true }
+        
+        # 1000 * 2 ** 50
+        mem_multiple("Pi") = 1125899906842624000 { true }
+        
+        # 1000 * 2 ** 60
+        mem_multiple("Ei") = 1152921504606846976000 { true }
+        
+        get_suffix(mem) = suffix {
+          not is_string(mem)
+          suffix := ""
+        }
+        
+        get_suffix(mem) = suffix {
+          is_string(mem)
+          count(mem) > 0
+          suffix := substring(mem, count(mem) - 1, -1)
+          mem_multiple(suffix)
+        }
+        
+        get_suffix(mem) = suffix {
+          is_string(mem)
+          count(mem) > 1
+          suffix := substring(mem, count(mem) - 2, -1)
+          mem_multiple(suffix)
+        }
+        
+        get_suffix(mem) = suffix {
+          is_string(mem)
+          count(mem) > 1
+          not mem_multiple(substring(mem, count(mem) - 1, -1))
+          not mem_multiple(substring(mem, count(mem) - 2, -1))
+          suffix := ""
+        }
+        
+        get_suffix(mem) = suffix {
+          is_string(mem)
+          count(mem) == 1
+          not mem_multiple(substring(mem, count(mem) - 1, -1))
+          suffix := ""
+        }
+        
+        get_suffix(mem) = suffix {
+          is_string(mem)
+          count(mem) == 0
+          suffix := ""
+        }
+        
+        canonify_mem(orig) = new {
+          is_number(orig)
+          new := orig * 1000
+        }
+        
+        canonify_mem(orig) = new {
+          not is_number(orig)
+          suffix := get_suffix(orig)
+          raw := replace(orig, suffix, "")
+          re_match("^[0-9]+$", raw)
+          new := to_number(raw) * mem_multiple(suffix)
+        }
+        
+        violation[{"msg": msg}] {
+          general_violation[{"msg": msg, "field": "containers"}]
+        }
+        
+        violation[{"msg": msg}] {
+          general_violation[{"msg": msg, "field": "initContainers"}]
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          cpu_orig := container.resources.limits.cpu
+          not canonify_cpu(cpu_orig)
+          msg := sprintf("container <%v> cpu limit <%v> could not be parsed", [container.name, cpu_orig])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          mem_orig := container.resources.limits.memory
+          not canonify_mem(mem_orig)
+          msg := sprintf("container <%v> memory limit <%v> could not be parsed", [container.name, mem_orig])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          cpu_orig := container.resources.requests.cpu
+          not canonify_cpu(cpu_orig)
+          msg := sprintf("container <%v> cpu request <%v> could not be parsed", [container.name, cpu_orig])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          mem_orig := container.resources.requests.memory
+          not canonify_mem(mem_orig)
+          msg := sprintf("container <%v> memory request <%v> could not be parsed", [container.name, mem_orig])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          not container.resources
+          msg := sprintf("container <%v> has no resource limits", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          not container.resources.limits
+          msg := sprintf("container <%v> has no resource limits", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          missing(container.resources.limits, "cpu")
+          msg := sprintf("container <%v> has no cpu limit", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          missing(container.resources.limits, "memory")
+          msg := sprintf("container <%v> has no memory limit", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          not container.resources.requests
+          msg := sprintf("container <%v> has no resource requests", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          missing(container.resources.requests, "cpu")
+          msg := sprintf("container <%v> has no cpu request", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          missing(container.resources.requests, "memory")
+          msg := sprintf("container <%v> has no memory request", [container.name])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          cpu_limits_orig := container.resources.limits.cpu
+          cpu_limits := canonify_cpu(cpu_limits_orig)
+          cpu_requests_orig := container.resources.requests.cpu
+          cpu_requests := canonify_cpu(cpu_requests_orig)
+          cpu_ratio := input.parameters.ratio
+          to_number(cpu_limits) > to_number(cpu_ratio) * to_number(cpu_requests)  
+          msg := sprintf("container <%v> cpu limit <%v> is higher than the maximum allowed ratio of <%v>", [container.name, cpu_limits_orig, cpu_ratio])
+        }
+        
+        general_violation[{"msg": msg, "field": field}] {
+          container := input.review.object.spec[field][_]
+          mem_limits_orig := container.resources.limits.memory
+          mem_requests_orig := container.resources.requests.memory
+          mem_limits := canonify_mem(mem_limits_orig)
+          mem_requests := canonify_mem(mem_requests_orig)
+          mem_ratio := input.parameters.ratio
+          to_number(mem_limits) > to_number(mem_ratio) * to_number(mem_requests)
+          msg := sprintf("container <%v> memory limit <%v> is higher than the maximum allowed ratio of <%v>", [container.name, mem_limits_orig, mem_ratio])
+        }
+----
+
 
 === Deploy Constraint
 
@@ -34,8 +299,34 @@ For this example parameters are:
 - Ratio: 3.
 - Enforcement action: `deny`.
 
+*CLI*:
+
 ----
 oc process -f lab-gatekeeper-files/lab4/constraint.yaml -p USER=$USER  | oc apply -f -
+----
+
+*Web Console*:
+
+*WebConsole*:
+
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a nex CRD called `ContainerRatio` in the main menu.
+Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: ContainerRatio
+metadata:
+  name: container-ratio
+spec:
+  enforcementAction: deny
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    ratio: "3"
 ----
 
 == Test constraint
@@ -49,8 +340,89 @@ As our constraint is testing pods and we are creating a deployment we will see t
 
 If you navigate to the status section of this resource you will see why is not able to scale the pods and you will see constraint error messages `memory limit <2Gi> is higher than the maximum allowed of <1Gi>` and `cpu limit <800m> is higher than the maximum allowed of <200m>`
 
+*CLI*:
+
 ---- 
 oc apply -f lab-gatekeeper-files/lab4/deployment-app-blue-bad.yaml -n petclinic-bluegreen-$USER
+----
+
+*Web Console*:
+
+As in the previos labs, deploy these resources in `petclinic-bluegreen-$USER` namespace:
+
+----
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-petclinic-blue
+  template:
+    metadata:
+      labels:
+        app: quarkus-petclinic-blue
+        deployment: quarkus-petclinic-blue
+    spec:
+      containers:
+        - name: quarkus-petclinic
+          image: 'quay.io/dsanchor/quarkus-petclinic:in-mem'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "800m"
+              memory: "2Gi"
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: route-petclinic-bluegreen
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  to:
+    kind: Service
+    name: quarkus-petclinic-blue
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  wildcardPolicy: None
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: quarkus-petclinic-blue
+    deployment: quarkus-petclinic-blue
+  type: ClusterIP
+  sessionAffinity: None
 ----
 
 To see these logs, navigate to `Workloads` -> `Deployment` and `Yaml` tab:
@@ -61,9 +433,18 @@ image:ratiolimit.png[ratiolimit]
 
 For testing the positive case we are going to patch the deployment to request a limit and request ratio lower than the maximun allowed. By running this command we should be able to deploy it properly:
 
+*CLI*:
+
 ----
 oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"quarkus-petclinic","image":"'quay.io/dsanchor/quarkus-petclinic:in-mem'","resources":{"limits":{"cpu":"550m","memory":"300Mi"},"requests":{"cpu":"200m","memory":"100Mi"}}}]}}}}' --type merge
 ----
+
+*Web Console*:
+
+Navigat to `Workloads`, then `Deployment`, on namespace `petclinic-bluegreen-$USER` select deployment `quarkus-petclinic-blue`. Go to `Yaml` tab and edit these values:
+
+image:patchresources.yaml[patchresources]
+
 
 As you can see we have deployed de deploymet resource with 2 replicas which has scaled good. Despite the fact that this constraint is testing Pods, if pods created by the deployment doesn't pass the constraint, those won't be created and deployment scaled replicas would be 0.
 
@@ -76,3 +457,7 @@ To end this lab, delete all the resources:
 oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
 oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-bluegreen-$USER
 ----
+
+
+Otherwise go to the web console and delete them manually.
+

@@ -19,9 +19,21 @@ For this example we want to verify that before deploying any pod there should be
 
 Before deploying any constraint, let's verify again that `Config` resource defines namespaces to be synced.
 
+*CLI*:
+
 ----
 oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
 ----
+
+*Web Console*:
+
+Go to `Explore`, search for `Config`, then on the upper banner select `openshift-gatekeeper-system` namespace ans select your instance.
+
+Finally you will be able to see the yaml definition:
+
+image:configinstance.png[configinstance]
+
+You will a list of objects on the `Sync` section, those are the resources accessed via `inventory`.
 
 === Deploy Constraint Template
 
@@ -29,9 +41,82 @@ First of all we are going to the deploy the constraint template where we are goi
 
 Additionally, on this constraint you can see how data inventory is accessed using the syntax we introduced at the beginning:
 
+*CLI*:
+
 ----
 oc apply -f lab-gatekeeper-files/lab5/constraintTemplate.yaml
 ----
+
+If you take a look to this template, you will see how your accessing the data inventory and comparing this data.
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: resourcequota
+spec:
+  crd:
+    spec:
+      names:
+        kind: ResourceQuota
+      validation:
+        openAPIV3Schema:
+          properties:
+            name:
+              type: string       
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package resourcequota
+        violation[{"msg": msg}] {
+          requestns := input.review.object.metadata.namespace
+          existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
+          not ns_exists(requestns,existingrqs)
+          msg = sprintf("The Pod could not be created because the %v namespace doesn't contain any ResourceQuota object",[requestns])
+        }
+        ns_exists(ns,arr) {
+          arr[_] = ns
+        }
+----
+
+*Web Console*:
+
+Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` version.
+
+Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
+
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+
+----
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: resourcequota
+spec:
+  crd:
+    spec:
+      names:
+        kind: ResourceQuota
+      validation:
+        openAPIV3Schema:
+          properties:
+            name:
+              type: string       
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package resourcequota
+        violation[{"msg": msg}] {
+          requestns := input.review.object.metadata.namespace
+          existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
+          not ns_exists(requestns,existingrqs)
+          msg = sprintf("The Pod could not be created because the %v namespace doesn't contain any ResourceQuota object",[requestns])
+        }
+        ns_exists(ns,arr) {
+          arr[_] = ns
+        }
+----
+
 
 === Deploy Constraint
 
@@ -41,8 +126,33 @@ Then we have to deploy constraint where we are going to define the parameters:
  - Resource under test: `Deployment`.
  - Enforcement action: `deny`.
 
+*CLI*:
+
 ----
 oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc apply -f -
+----
+
+*Web Console*:
+
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredRouteName` in the main menu.
+
+Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
+
+WARNING: It may take a while till those are listed.
+
+----
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: ResourceQuota
+metadata:
+  name: resourcequota
+spec:
+  enforcementAction: deny      
+  match:
+    namespaces:
+      - "petclinic-bluegreen-${USER}"      
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
 ----
 
 == Test constraint
@@ -53,9 +163,88 @@ For testing this constraint, our environment has two namespaces, one with a depl
 
 For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
 
+*CLI*:
+
 ----
 oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
 ----
+
+*Web Console*:
+
+As in the previous labs in namespace `petclinic-bluegreen-$USER`:
+
+----
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-petclinic-blue
+  template:
+    metadata:
+      labels:
+        app: quarkus-petclinic-blue
+        deployment: quarkus-petclinic-blue
+    spec:
+      containers:
+        - name: quarkus-petclinic
+          image: 'quay.io/dsanchor/quarkus-petclinic:in-mem'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+----
+
+----
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: route-petclinic-bluegreen
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  to:
+    kind: Service
+    name: quarkus-petclinic-blue
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  wildcardPolicy: None
+----
+
+----
+kind: Service
+apiVersion: v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: quarkus-petclinic-blue
+    deployment: quarkus-petclinic-blue
+  type: ClusterIP
+  sessionAffinity: None
+----
+
 
 As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-bluegreen-$USER namespace doesn't contain any ResourceQuota object`.
 
@@ -63,8 +252,88 @@ As there is no resource quota, you should see error message `The Pod could not b
 
 For testing the positive case we are going to deploy an app into a namespace with a `ResourceQuota`. As this deployment follows the existing constraint there shouldn't be any issue.
 
+*CLI*:
+
 ----
 oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
 ----
 
+*Web Console*:
+
+Now try to redeploy you app in the namespace `petclinic-beta-${USER}` with a deployed `ResourceQuota`.
+
+
+as in the previous labs in namespace `petclinic-bluegreen-$USER`:
+
+----
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-petclinic-blue
+  template:
+    metadata:
+      labels:
+        app: quarkus-petclinic-blue
+        deployment: quarkus-petclinic-blue
+    spec:
+      containers:
+        - name: quarkus-petclinic
+          image: 'quay.io/dsanchor/quarkus-petclinic:in-mem'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+----
+
+----
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: route-petclinic-bluegreen
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  to:
+    kind: Service
+    name: quarkus-petclinic-blue
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  wildcardPolicy: None
+----
+
+----
+kind: Service
+apiVersion: v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: quarkus-petclinic-blue
+    deployment: quarkus-petclinic-blue
+  type: ClusterIP
+  sessionAffinity: None
+----
 
