@@ -9,7 +9,11 @@
 [Abstract]
 In this lab we are going to implement a constraint to see how the syncing feature works. 
 
-As explaing at the beginning of this course, syncing feature allows to sync objects in order to be accessible apart from the resource under test.
+As explaing at the previous presentation, syncing feature allows to sync objects in order to be make them accessible apart from the resource under test.
+For audit feature, every object under test is cached before being audited for constraints while syncing allows us to cache more objects and use OP
+A cache "as the source-of-truth". Those objects to be synced are specified at the `syncOnly` section.
+
+Once data is replicated, it will be accessible via `data.inventory`.
 
 For this example we want to verify that before deploying any pod there should be a deployed `ResourceQuota` on that `namespace`.
 
@@ -27,17 +31,17 @@ oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
 
 *Web Console*:
 
-Go to `Explore`, search for `Config`, then on the upper banner select `openshift-gatekeeper-system` namespace ans select your instance.
+Go to `Explore`, search for `Config`, then on the upper banner select `openshift-gatekeeper-system` namespace and select your instance.
 
 Finally you will be able to see the yaml definition:
 
-image:configinstance.png[configinstance]
+image:syncconfig.png[configinstance]
 
-You will a list of objects on the `Sync` section, those are the resources accessed via `inventory`.
+You will see a list of objects on the `Sync` section, those are the resources accessed via `inventory`.
 
 === Deploy Constraint Template
 
-First of all we are going to the deploy the constraint template where we are going to define how a namespace should has a deployed `ResourceQuota` for deploying any deployment resource.
+First of all we are going to deploy the constraint template where we are going to define how a namespace should has a deployed `ResourceQuota` for deploying any resource.
 
 Additionally, on this constraint you can see how data inventory is accessed using the syntax we introduced at the beginning:
 
@@ -91,12 +95,12 @@ Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the y
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: resourcequota
+  name: requiredresourcequota
 spec:
   crd:
     spec:
       names:
-        kind: ResourceQuota
+        kind: RequiredResourceQuota
       validation:
         openAPIV3Schema:
           properties:
@@ -105,7 +109,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package resourcequota
+        package requiredresourcequota
         violation[{"msg": msg}] {
           requestns := input.review.object.metadata.namespace
           existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
@@ -134,7 +138,7 @@ oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc appl
 
 *Web Console*:
 
-After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `ResourceQuota` in the main menu.
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredResourceQuota` in the main menu.
 
 Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
 
@@ -142,9 +146,9 @@ WARNING: It may take a while till those are listed.
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: ResourceQuota
+kind: RequiredResourceQuota
 metadata:
-  name: resourcequota
+  name: requiredresourcequota
 spec:
   enforcementAction: deny      
   match:
@@ -197,7 +201,13 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
-          resources: {}
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "200Mi"
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
           imagePullPolicy: Always
   strategy:
     type: RollingUpdate
@@ -206,43 +216,6 @@ spec:
       maxSurge: 25%
   revisionHistoryLimit: 10
   progressDeadlineSeconds: 600
-----
-
-----
-kind: Route
-apiVersion: route.openshift.io/v1
-metadata:
-  name: route-petclinic-bluegreen
-  labels:
-    app: quarkus-petclinic-blue
-spec:
-  to:
-    kind: Service
-    name: quarkus-petclinic-blue
-    weight: 100
-  port:
-    targetPort: 8080-tcp
-  wildcardPolicy: None
-----
-
-----
-kind: Service
-apiVersion: v1
-metadata:
-  name: quarkus-petclinic-blue
-  labels:
-    app: quarkus-petclinic-blue
-spec:
-  ports:
-    - name: 8080-tcp
-      protocol: TCP
-      port: 8080
-      targetPort: 8080
-  selector:
-    app: quarkus-petclinic-blue
-    deployment: quarkus-petclinic-blue
-  type: ClusterIP
-  sessionAffinity: None
 ----
 
 
@@ -261,9 +234,6 @@ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta
 *Web Console*:
 
 Now try to redeploy you app in the namespace `petclinic-beta-${USER}` with a deployed `ResourceQuota`.
-
-
-as in the previous labs in namespace `petclinic-bluegreen-$USER`:
 
 ----
 kind: Deployment
@@ -289,7 +259,13 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
-          resources: {}
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "200Mi"
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
           imagePullPolicy: Always
   strategy:
     type: RollingUpdate

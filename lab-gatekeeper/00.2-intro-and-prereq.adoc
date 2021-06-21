@@ -1,0 +1,74 @@
+== Gatekeeper operator features
+
+=== Constraint Templates
+
+Constraint templates define the pattern of the constraint and the Rego rule. Most of these patterns are defined by iterating through the resource the constraint is auditing and comparing this value with the threshold specified by the constraint. You can use logical operator, type transformation and looping as part of it.
+
+Here you can find information about the https://www.openpolicyagent.org/docs/latest/policy-reference/[policy reference].
+
+=== Constraints
+
+Constraint resources define how the template must be enforced as it specifies the value to be hooked and how. Constraints must be created after the template is implemented.
+
+Constraints define:
+
+ - Parameters: threshold values.
+ - Kinds: list of object to which the constraint will apply.
+ - Scope: cluster-scoped or namespace-scope resources affected by the constraint. This works together with namespaces excluded by config file.
+ - Namespace: apply the constraint to an specific namespace.
+ - Excluded namespace: apply the constraint to a non listed namespace.
+ - Label selector: apply constraint to these labeled resources.
+ - Namespace selector: apply constraint to specific synced namespaces.
+=== Admission webhook
+
+Gatekeeper is a Kubernetes admission webhook resource which defines two different admission webhooks, one for checking a request against the installed constraints and another one for checking labels on namespace requests to bypass certain constraints.
+
+Webhooks values like timeouts and failure policy can be configured to ignore certain type of errors, allow request in specific conditions, tune performance or customize availability. Changing these configuration is not covered on this lab but you can find the information https://open-policy-agent.github.io/gatekeeper/website/docs/customize-admission[here].
+
+You can check current admission hook configuration with this command:
+
+WARNING: Your user only has permissions to get and list this resource.
+
+[source, bash]
+----
+oc get ValidatingWebhookConfiguration gatekeeper-validating-webhook-configuration -o yaml
+----
+
+=== Config
+
+The `Config` resource is a resource which can be used to define general configuration for Gatekeeper.
+The two main configurations we can do are Sync and Match:
+
+- `Sync`: replicate and sync data to OPA, so these data is available for constraints which need to access more objects that the one under test.
+- `Match`: list namespaces to be excluded by their names and determine the process among these options: "audit", "webhook", "sync" and "*".
+
+
+=== Audit, Syncing and Debugging
+
+==== Audit
+
+Audit feature register all the events related to the status of a constraint by enabling periodic evaluation of resources against the policies.
+Audit configuration values like memory consumption, scope or limits can be overrided to improve performance. Those are defined as part of the Config resource previously mentioned.
+Some of these values are:
+
+- Constraint violations limit: default to 20.
+- Audit chunk size: default to infinite. To limit memory consumption of the auditing Pod.
+- Audit interval: default to 60 seconds.
+- Audit from cache: default to false. Audit will request each resource from the Kubernetes API during each cycle of the audit unless you specify this flad and define a match kind resource, in this case it will be audited from cache. Auditing from cache saves time as it doesn't have to audit all resources in the cluster. Not defining match kind resources is equal to set this flag to false.
+
+==== Debugging
+
+Constraints must specify an enforcement action which is `deny` by default. Other option is `dryrun` mode which allows to test constraint without making actual changes while are registered as violations in the audit status section.
+Logs details are configured when creating the Gatekeeper resource. Log levels ranges between `DEBUG`, `INFO`, `WARNING` and `ERROR`.
+
+Additionally in Config resource you can enable traces for some resources and a specific user. These traces will be logged to the stdout of the Gatekeeper controller.
+
+==== Syncing
+
+Config resource defines a list of object to be synced by defining group, version and kind. Once this list of objects is synced, they can be accesed via data inventory document following this structure:
+
+ -  `data.inventory.cluster-group-kind-name`
+ -  `data.inventory.namespace-group-kind-name`
+
+This feature is interesting not only for its potential to improve performance but it allows to implement rules which require access to other resources than the one observed directly by the rule.
+

@@ -4,9 +4,9 @@ metadata:
   name: livemigrate-template
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: ResourceQuota
+  kind: RequiredResourceQuota
   metadata:
-    name: resourcequota
+    name: requiredresourcequota
   spec:
     enforcementAction: deny      
     match:
