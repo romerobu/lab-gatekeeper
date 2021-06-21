@@ -436,7 +436,7 @@ For testing the positive case we are going to patch the deployment to request a 
 *CLI*:
 
 ----
-oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"quarkus-petclinic","image":"'quay.io/dsanchor/quarkus-petclinic:in-mem'","resources":{"limits":{"cpu":"550m","memory":"300Mi"},"requests":{"cpu":"200m","memory":"100Mi"}}}]}}}}' --type merge
+oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"quarkus-petclinic","image":"'quay.io/dsanchor/quarkus-petclinic:in-mem'","resources":{"limits":{"cpu":"550m","memory":"300Mi"},"requests":{"cpu":"200m","memory":"100Mi"}}}]}}}}' --type merge  -n petclinic-bluegreen-$USER
 ----
 
 *Web Console*:
