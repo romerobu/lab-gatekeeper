@@ -196,7 +196,7 @@ oc get constraint maxreplicas -o yaml
 On the `status` part you can see two sections:
 
  - `auditTimestamp`: this timestamp indicates when the last check happened. This frequency can be overrided on gatekeeper resource.
- - `byPod`: this section shows three pods created on `openshift-gatekeeper-system` namespace. This pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
+ - `byPod`: this section shows three pods created on `openshift-gatekeeper-system` namespace. These pods resume all the logs from audit feature, compiling all the information regarding constraints and violations like count of constraints, resources under test and violations.
 
 Finally verify to can navigate to the app you just deployed:
 
@@ -206,7 +206,7 @@ Finally verify to can navigate to the app you just deployed:
 
 *Web Console*:
 
-To deploy your resources go to `Workloads` and `Netoworking`, then on `Deployment`, `Services` and `Routes` selector your namespaces `petclinic-bluegreen-$USER` and click on `Create`.
+To deploy your resources go to `Workloads` and `Networking`, then on `Deployment`, `Services` and `Routes` select your namespace `petclinic-bluegreen-$USER` and click on `Create`.
 
 image:svc.png[service]
 

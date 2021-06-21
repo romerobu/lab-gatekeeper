@@ -35,7 +35,7 @@ https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper/-/tree/master/l
 Clone the repository to your desired location, that will then be referred as *$LABS_HOME* during the labs:
 
 ....
-$ git clone https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper.git $LABS_HOME
+$ git clone https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper.git
 ....
 
 :numbered:
@@ -99,7 +99,9 @@ This role limits the privileges of your user so you won't be able to run cluster
 
 Furthermore you will find a `Gatekeeper` resource created with the basic configuration needed for logs and audit feature.
 
-You can check the installed operator for this lab on `Operators` -> `Installed Operators`:
+Change your view mode to `Administrator` on the upper left banner and you can check the installed operator for this lab on `Operators` -> `Installed Operators`:
+
+WARNING: Select namespace `openshift-operators`.
 
 image:operator.png[operator]
 

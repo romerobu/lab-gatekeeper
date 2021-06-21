@@ -36,7 +36,6 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: quarkus-petclinic-bluegreen
-  ##name: prueba
   labels:
     app: quarkus-petclinic-blue
 spec:

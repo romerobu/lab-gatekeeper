@@ -28,7 +28,7 @@ oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
 
 *Web Console*:
 
-Go to `Explore`, search for `Config`, then on the upper banner select `openshift-gatekeeper-system` namespace ans select your instance.
+Go to `Explore`, search for `Config`, then on the upper banner select `openshift-gatekeeper-system` namespace and select your instance.
 
 Finally you will be able to see the yaml definition:
 
@@ -181,8 +181,18 @@ As you can see there is a violation detected for resource `Route`  with error me
 
 For the second namespace `petclinic-beta-$USER` as webhook process is excluded if we try to deploy the same app we should be allowed but getting the same violation warning, so total violations count will be 2.
 
+*CLI*:
+
 ----
 oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$USER
+----
+
+*Web Console*:
+
+Repeat the deployment process as in Lab 2 but for namespace `petclinic-beta-$USER`.
+
+----
+cat lab-gatekeeper-files/lab2/deploy-app-green.yaml
 ----
 
 === Test positive case
@@ -215,6 +225,7 @@ oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USE
 First you need to delete manually the existing resources:
 
 Go to `Workloads` and `Deployments`. Select `petclinic-bluegreen-$USER` namespace and delete the deployment containint the label `app=quarkus-petclinic-blue`. Now change namespace to `petclinic-beta-$USER` and delete the deployment containing the label `gatekeeper=quarkus-petclinic-green`.
+Repeat this process for `Services` and `Routes`.
 
 Once your namespaces are empty deploy these reources as in the previous labs in namespace `petclinic-bluegreen-$USER`:
 
