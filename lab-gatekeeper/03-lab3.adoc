@@ -23,7 +23,7 @@ As mentioned we need to create a config resource to exclude some processes from 
 *CLI*:
 
 ----
-oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
+$ oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
   
   apiVersion: config.gatekeeper.sh/v1alpha1
   kind: Config
@@ -45,14 +45,15 @@ You will see there is a list of namespaces excluded for webhook process, this is
 
 === Deploy Constraint Template
 
-First we need to deploy the constraint templates where we are going to check the existing name of the object under test.
+First we need to check the constraint templates where we are going to check the existing name of the object under test.
+
+As this is a cluster scoped resource, constraint template has been already deployed for you so you just need to create your parameterized constraint.
+
 
 *CLI*: 
 
 ----
-oc process -f lab-gatekeeper-files/lab3/constraintTemplate.yaml  -p USER=$USER  | oc apply -f -
-
- constrainttemplate.templates.gatekeeper.sh/requiredroutenamecromerob created
+$ oc get constraintTemplate requiredroutenamecromerob
 ----
 
 If you take a look to this template, you will see in this case you are using `contains` verification.
@@ -61,12 +62,12 @@ If you take a look to this template, you will see in this case you are using `co
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: requiredroutename${USER}
+  name: requiredroutename
 spec:
   crd:
     spec:
       names:
-        kind: RequiredRouteName${USER}
+        kind: RequiredRouteName
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
@@ -76,7 +77,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package requiredroutename${USER}
+        package requiredroutename
         violation[{"msg": msg}] {
           provided := input.review.object.metadata.name
           required := input.parameters.name
@@ -91,36 +92,9 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, replace your username for ${USER} then paste the yaml definition:
+Go to `Instances` tab and click on the existing constraint to see more details:
 
-----
-apiVersion: templates.gatekeeper.sh/v1beta1
-kind: ConstraintTemplate
-metadata:
-  name: requiredroutename${USER}
-spec:
-  crd:
-    spec:
-      names:
-        kind: RequiredRouteName${USER}
-      validation:
-        # Schema for the `parameters` field
-        openAPIV3Schema:
-          properties:
-            name:
-              type: string
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package requiredroutename${USER}
-        violation[{"msg": msg}] {
-          provided := input.review.object.metadata.name
-          required := input.parameters.name
-          not contains(provided,required)
-          msg := sprintf("Route must include string: %v", [required])
-        }
-----
-
+*img
 
 === Deploy Constraint 
 
@@ -136,14 +110,14 @@ For this example parameters are:
 *CLI*:
 
 ----
-oc process -f lab-gatekeeper-files/lab3/constraint.yaml -p USER=$USER  | oc apply -f -
+$ oc process -f lab-gatekeeper-files/lab3/constraint.yaml -p USER=$USER  | oc apply -f -
 
  requiredroutenamecromerob.constraints.gatekeeper.sh/required-route-name-cromerob created
 ----
 
 *Web Console*:
 
-After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredRouteName${USER}` in the main menu.
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredRouteName` in the main menu.
 
 Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
 
@@ -151,7 +125,7 @@ WARNING: It may take a while till those are listed.
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: RequiredRouteName${USER}
+kind: RequiredRouteName
 metadata:
   name: required-route-name-${USER}
 spec:
@@ -178,10 +152,10 @@ In this lab we are going to test how constraint applies to existing resources fr
 *CLI*:
 
 ----
-oc get requiredroutename${USER}.constraints.gatekeeper.sh/required-route-name-${USER} -o yaml
+$ oc get requiredroutename.constraints.gatekeeper.sh/required-route-name-${USER} -o yaml
 
   apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: RequiredRouteNamecromerob
+  kind: RequiredRouteName
   metadata:
     annotations:
     ...
@@ -200,7 +174,7 @@ For the second namespace `petclinic-beta-$USER` as webhook process is excluded i
 *CLI*:
 
 ----
-oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$USER
+$ oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$USER
 
  deployment.apps/quarkus-petclinic-green created
  route.route.openshift.io/quarkus-petclinic-bluegreen created
@@ -212,7 +186,7 @@ oc apply -f  lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-beta-$
 Repeat the deployment process as in Lab 2 but for namespace `petclinic-beta-$USER`.
 
 ----
-cat lab-gatekeeper-files/lab2/deploy-app-green.yaml
+$ cat lab-gatekeeper-files/lab2/deploy-app-green.yaml
 ----
 
 === Test positive case
@@ -222,20 +196,20 @@ As the existing route's name is not valid we are going to redeploy it for a vali
 *CLI*:
 
 ----
-oc delete all --selector app=quarkus-petclinic-blue -n petclinic-bluegreen-$USER
+$ oc delete all --selector app=quarkus-petclinic-blue -n petclinic-bluegreen-$USER
 
  pod "quarkus-petclinic-blue-75f67dfddf-cf7rh" deleted
  pod "quarkus-petclinic-blue-75f67dfddf-sz7n7" deleted
  service "quarkus-petclinic-blue" deleted
  deployment.apps "quarkus-petclinic-blue" deleted
 
-oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-beta-$USER
+$ oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-beta-$USER
 
  service "quarkus-petclinic-green" deleted
  deployment.apps "quarkus-petclinic-green" deleted
  route.route.openshift.io "quarkus-petclinic-bluegreen" deleted
 
-oc apply -f lab-gatekeeper-files/lab3/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
+$ oc apply -f lab-gatekeeper-files/lab3/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 
  deployment.apps/quarkus-petclinic-blue created
  route.route.openshift.io/route-petclinic-bluegreen created
@@ -245,10 +219,10 @@ oc apply -f lab-gatekeeper-files/lab3/deploy-app-blue.yaml -n petclinic-bluegree
 After waiting the audit interval time there should not be any violation on the constraint.
 
 ----
-oc get requiredroutename${USER}.constraints.gatekeeper.sh/required-route-name-${USER} -o yaml
+$ oc get requiredroutename.constraints.gatekeeper.sh/required-route-name-${USER} -o yaml
 
  apiVersion: constraints.gatekeeper.sh/v1beta1
- kind: RequiredRouteName${USER}
+ kind: RequiredRouteName
  metadata:
    annotations:
    ...
@@ -257,7 +231,7 @@ oc get requiredroutename${USER}.constraints.gatekeeper.sh/required-route-name-${
 To finish this lab, delete all the resources:
 
 ----
-oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
+$ oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
 ----
 
 
