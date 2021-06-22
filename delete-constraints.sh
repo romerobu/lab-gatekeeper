@@ -1,6 +1,6 @@
 #!/bin/bash
 
-oc delete resourcequota.constraints.gatekeeper.sh/resourcequota
+oc delete requiredresourcequota.constraints.gatekeeper.sh/requiredresourcequota
 oc delete requiredlabelsroute.constraints.gatekeeper.sh/required-label-route
 oc delete maxreplicas.constraints.gatekeeper.sh/maxreplicas
 oc delete containerratio.constraints.gatekeeper.sh/container-ratio
@@ -13,4 +13,4 @@ oc delete constraintTemplate requiredlabelsdeployment
 oc delete constraintTemplate requiredlabelsroute
 oc delete constraintTemplate requiredlabelssvc
 oc delete constraintTemplate requiredroutename
-oc delete constraintTemplate resourcequota
+oc delete constraintTemplate requiredresourcequota

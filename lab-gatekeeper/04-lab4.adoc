@@ -307,7 +307,7 @@ oc process -f lab-gatekeeper-files/lab4/constraint.yaml -p USER=$USER  | oc appl
 
 *Web Console*:
 
-After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a nex CRD called `ContainerRatio` in the main menu.
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a new CRD called `ContainerRatio` in the main menu.
 Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
 
 ----

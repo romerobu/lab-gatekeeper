@@ -190,7 +190,7 @@ oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegre
 As you can see, you are allowed to create the resources and there is no violation on the constraint status:
 
 ----
-oc get constraint maxreplicas -o yaml
+oc get constraints maxreplicas -o yaml
 ----
 
 On the `status` part you can see two sections:

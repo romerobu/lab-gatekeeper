@@ -36,6 +36,8 @@ Clone the repository to your desired location, that will then be referred as *$L
 
 ....
 $ git clone https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper.git
+
+cd $LABS_HOME
 ....
 
 :numbered:
@@ -48,6 +50,10 @@ A login screen will be shown as follow after selecting `Local Password`:
 image:login.png[login]
 
 Enter your `username` and `password` and click `Log In`.
+
+Then switch to `Administrator` perspective by clicking on the upper left banner:
+
+image:administrator.png[administrator]
 
 If you have successfully logged in, you will landed at the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
 
