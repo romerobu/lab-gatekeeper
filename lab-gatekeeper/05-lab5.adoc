@@ -9,9 +9,8 @@
 [Abstract]
 In this lab we are going to implement a constraint to see how the syncing feature works. 
 
-As explaing at the previous presentation, syncing feature allows to sync objects in order to be make them accessible apart from the resource under test.
-For audit feature, every object under test is cached before being audited for constraints while syncing allows us to cache more objects and use OP
-A cache "as the source-of-truth". Those objects to be synced are specified at the `syncOnly` section.
+As explaing at the previous presentation, syncing feature allows to sync objects in order to  make them accessible apart from the resource under test.
+For audit feature, every object under test is cached before being audited for constraints while syncing allows us to cache more objects and use OPA cache "as the source-of-truth". Those objects to be synced are specified at the `syncOnly` section.
 
 Once data is replicated, it will be accessible via `data.inventory`.
 
@@ -41,7 +40,7 @@ You will see a list of objects on the `Sync` section, those are the resources ac
 
 === Deploy Constraint Template
 
-First of all we are going to deploy the constraint template where we are going to define how a namespace should has a deployed `ResourceQuota` for deploying any resource.
+First of all we are going to deploy the constraint template where we are going to define how a namespace should have a deployed `ResourceQuota` for deploying any resource.
 
 Additionally, on this constraint you can see how data inventory is accessed using the syntax we introduced at the beginning:
 

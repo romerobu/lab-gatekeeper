@@ -32,12 +32,12 @@ Finally the error message it will be prompted when the webhook triggers this con
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: maxreplicas
+  name: maxreplicas${USER}
 spec:
   crd:
     spec:
       names:
-        kind: MaxReplicas
+        kind: MaxReplicas${USER}
       validation:
         openAPIV3Schema:
           properties:
@@ -46,7 +46,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package maxreplicas
+        package maxreplicas${USER}
 
         violation[{"msg": msg}] {
           replicas := input.review.object.spec.replicas
@@ -64,18 +64,18 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then replace ${USER} with your username and paste the yaml definition:
 
 ----
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: maxreplicas
+  name: maxreplicas${USER}
 spec:
   crd:
     spec:
       names:
-        kind: MaxReplicas
+        kind: MaxReplicas${USER}
       validation:
         openAPIV3Schema:
           properties:
@@ -84,7 +84,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package maxreplicas
+        package maxreplicas${USER}
 
         violation[{"msg": msg}] {
           replicas := input.review.object.spec.replicas
@@ -98,8 +98,10 @@ spec:
 
 You can deploy it with this command:
 
+Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
+
 ----
-oc apply -f lab-gatekeeper-files/lab1/constraintTemplate.yaml
+oc process -f lab-gatekeeper-files/lab1/constraintTemplate.yaml  -p USER=$USER  | oc apply -f -
 ----
 
 As you can see, this constraint template is written using the rego syntax mentioned before. It compares that the constraint integer input is not greater than the replicas value of the object under test.
@@ -122,9 +124,9 @@ Repeat the same procedure for this new CRD and paste your yaml definition after 
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: MaxReplicas
+kind: MaxReplicas${USER}
 metadata:
-  name: maxreplicas
+  name: maxreplicas${USER}
 spec:
   enforcementAction: deny      
   match:
@@ -139,19 +141,16 @@ spec:
 
 
 *CLI*:
-
-Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
-
 ----
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: template-maxreplicas
+  name: template-maxreplicas-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: MaxReplicas
+  kind: MaxReplicas${USER}
   metadata:
-    name: maxreplicas
+    name: maxreplicas${USER}
   spec:
     enforcementAction: deny      
     match:
@@ -185,12 +184,20 @@ For testing a positive case where a deployment accomplish the constraint run thi
 
 ----
 oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
+  deployment.apps/quarkus-petclinic-blue created
+  route.route.openshift.io/quarkus-petclinic-bluegreen created
+  service/quarkus-petclinic-blue created
 ----
 
 As you can see, you are allowed to create the resources and there is no violation on the constraint status:
 
 ----
-oc get constraints maxreplicas -o yaml
+oc get constraints maxreplicas${USER} -o yaml
+  apiVersion: constraints.gatekeeper.sh/v1beta1
+  kind: MaxReplicascromerob
+  metadata:
+    annotations:
+    ....
 ----
 
 On the `status` part you can see two sections:
@@ -201,7 +208,8 @@ On the `status` part you can see two sections:
 Finally verify to can navigate to the app you just deployed:
 
 ----
- oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
+oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
+  Host: quarkus-petclinic-bluegreen-petclinic-bluegreen-${USER}.apps.${APPS_CLUSTER}.opentlc.com
 ----
 
 *Web Console*:
@@ -217,11 +225,9 @@ Finally paste the corresponding section of the yaml description.
 cat lab-gatekeeper-files/lab1/deploy-app-blue.yaml
 ----
 
-After doing this you should be able to access the route:
+After doing this you should be able to access the route. Go to `Networking`, then `Route` and click on `quarkus-petclinic-bluegreen`:
 
-----
-oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
-----
+image:route.png[route]
 
 === Test negative case
 
@@ -231,6 +237,7 @@ For testing a negative case where deployment doesn't accomplish the constraint r
 
 ----
 oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"replicas":5}}' --type merge
+  Error from server ([denied by maxreplicascromerob] Deployment 5 pods is higher than the maximum allowed of 3): admission webhook "validation.gatekeeper.sh" denied the request: [denied by maxreplicascromerob] Deployment 5 pods is higher than the maximum allowed of 3
 ----
 
 As you can see you cannot create this deployment resource and you are prompted with error message `Deployment 5 pods is higher than the maximum allowed of 3`. This error message is customized on constraint resource.
@@ -242,6 +249,8 @@ WARNING: Audit interval is 60 seconds by default, so you may need to wait this t
 *Web Console*:
 
 To deploy your resources go to `Workloads` , then on `Deployment` and select your deployment `quarkus-petclinic-blue`. Then on `Yaml` tab edit the replicas amout to 5. Finally click on `Save`.
+
+image:maxreplicaspatch.png[maxreplicas]
 
 As you can see you cannot create this deployment resource and you are prompted with error message `Deployment 5 pods is higher than the maximum allowed of 3`.
 

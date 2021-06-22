@@ -59,7 +59,7 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the following yaml definitions separately:
 
 ----
 apiVersion: templates.gatekeeper.sh/v1beta1
@@ -89,7 +89,9 @@ spec:
           count(missing) > 0
           msg := sprintf("You must provide labels: %v", [missing])
         }
----
+----
+
+----
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
@@ -117,7 +119,9 @@ spec:
           count(missing) > 0
           msg := sprintf("You must provide labels: %v", [missing])
         }
----
+----
+
+----
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
