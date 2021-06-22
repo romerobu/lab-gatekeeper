@@ -24,12 +24,12 @@ If you take a look to one of the templates you will see in this case we are doin
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: requiredlabelssvc
+  name: requiredlabelssvc${USER}
 spec:
   crd:
     spec:
       names:
-        kind: RequiredLabelsSvc
+        kind: RequiredLabelsSvc${USER}
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
@@ -40,7 +40,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package requiredlabelssvc
+        package requiredlabelssvc${USER}
         violation[{"msg": msg, "details": {"missing_labels": missing}}] {
           provided := {label | input.review.object.metadata.labels[label]}
           required := {label | label := input.parameters.labels[_]}
@@ -59,18 +59,18 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the following yaml definitions separately:
+Go to `Instances` tab and click on `Create ConstraintTemplate`, replace ${USER} with your username then paste the following yaml definitions separately:
 
 ----
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: requiredlabelssvc
+  name: requiredlabelssvc${USER}
 spec:
   crd:
     spec:
       names:
-        kind: RequiredLabelsSvc
+        kind: RequiredLabelsSvc${USER}
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
@@ -81,7 +81,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package requiredlabelssvc
+        package requiredlabelssvc${USER}
         violation[{"msg": msg, "details": {"missing_labels": missing}}] {
           provided := {label | input.review.object.metadata.labels[label]}
           required := {label | label := input.parameters.labels[_]}
@@ -95,12 +95,12 @@ spec:
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: requiredlabelsroute
+  name: requiredlabelsroute${USER}
 spec:
   crd:
     spec:
       names:
-        kind: RequiredLabelsRoute
+        kind: RequiredLabelsRoute${USER}
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
@@ -111,7 +111,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package requiredlabelsroute
+        package requiredlabelsroute${USER}
         violation[{"msg": msg, "details": {"missing_labels": missing}}] {
           provided := {label | input.review.object.metadata.labels[label]}
           required := {label | label := input.parameters.labels[_]}
@@ -125,12 +125,12 @@ spec:
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: requiredlabelsdeployment
+  name: requiredlabelsdeployment${USER}
 spec:
   crd:
     spec:
       names:
-        kind: RequiredLabelsDeployment
+        kind: RequiredLabelsDeployment${USER}
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
@@ -141,7 +141,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package requiredlabelsdeployment
+        package requiredlabelsdeployment${USER}
         violation[{"msg": msg, "details": {"missing_labels": missing}}] {
           provided := {label | input.review.object.metadata.labels[label]}
           required := {label | label := input.parameters.labels[_]}
@@ -157,9 +157,17 @@ spec:
 You can deploy the templates with this command:
 
 ----
-oc apply -f lab-gatekeeper-files/lab2/constraintTemplateDeployment.yaml
-oc apply -f lab-gatekeeper-files/lab2/constraintTemplateRoute.yaml
-oc apply -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml
+oc process -f lab-gatekeeper-files/lab2/constraintTemplateDeployment.yaml  -p USER=$USER  | oc apply -f -
+
+  constrainttemplate.templates.gatekeeper.sh/requiredlabelsdeployment${USER] created
+
+oc process -f lab-gatekeeper-files/lab2/constraintTemplateRoute.yaml -p USER=$USER  | oc apply -f -
+
+  constrainttemplate.templates.gatekeeper.sh/requiredlabelsroute${USER} created
+
+oc process -f lab-gatekeeper-files/lab2/constraintTemplateSvc.yaml -p USER=$USER  | oc apply -f -
+
+  constrainttemplate.templates.gatekeeper.sh/requiredlabelssvc${USER} created
 ----
 
 === Deploy Constraint 
@@ -175,7 +183,7 @@ For this example parameters are:
 
 *WebConsole*:
 
-After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list three  CRDs called `RequiredLabelsDeployment`, `RequiredLabelsSvc` and `RequiredLabelsRoute` in the main menu.
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list three  CRDs called `RequiredLabelsDeployment${USER}`, `RequiredLabelsSvc${USER}` and `RequiredLabelsRoute${USER}` in the main menu.
 
 Repeat the same procedure for these new CRDs and paste your yaml definition after changing the ${USER} value for your username:
 
@@ -183,9 +191,9 @@ WARNING: It may take a while till those are listed.
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: RequiredLabelsSvc
+kind: RequiredLabelsSvc${USER}
 metadata:
-  name: required-label-service
+  name: required-label-service-${USER}
 spec:
   enforcementAction: deny       
   match:
@@ -200,9 +208,9 @@ spec:
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: RequiredLabelsRoute
+kind: RequiredLabelsRoute${USER}
 metadata:
-  name: required-label-route
+  name: required-label-route-${USER}
 spec:
   enforcementAction: deny
   match:
@@ -217,9 +225,9 @@ spec:
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: RequiredLabelsDeployment
+kind: RequiredLabelsDeployment${USER}
 metadata:
-  name: required-label-deployment
+  name: required-label-deployment-${USER}
 spec:
   enforcementAction: deny
   match:
@@ -234,12 +242,18 @@ spec:
 
 *CLI*:
 
-Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
-
 ----
 oc process -f lab-gatekeeper-files/lab2/constraint-deployment.yaml -p USER=$USER  | oc apply -f -
+
+ requiredlabelsdeploymentcromerob.constraints.gatekeeper.sh/required-label-deployment-${USER} created
+
 oc process -f lab-gatekeeper-files/lab2/constraint-route.yaml -p USER=$USER  | oc apply -f -
+
+ requiredlabelsroutecromerob.constraints.gatekeeper.sh/required-label-route-${USER} created
+
 oc process -f lab-gatekeeper-files/lab2/constraint-svc.yaml -p USER=$USER  | oc apply -f -
+
+ requiredlabelssvccromerob.constraints.gatekeeper.sh/required-label-service-${USER} created
 ----
 
 == Test constraint
@@ -263,6 +277,10 @@ cat lab-gatekeeper-files/lab2/deploy-app-blue.yaml
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
+
+  deployment.apps/quarkus-petclinic-blue created
+  route.route.openshift.io/quarkus-petclinic-bluegreen created
+  service/quarkus-petclinic-blue created
 ----
 
 === Test negative case
@@ -285,6 +303,19 @@ cat lab-gatekeeper-files/lab2/deploy-app-green.yaml
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$USER
+
+  Error from server ([denied by required-label-deployment-cromerob] You must provide labels: {"app"}): error when creating "lab-gatekeeper-files/lab2/deploy-app-green.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by required-label-deployment-cromerob] You must provide labels: {"app"}
+  
+  Error from server ([denied by required-label-route-cromerob] You must provide labels: {"app"}): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"route.openshift.io/v1\",\"kind\":\"Route\",\"metadata\":{\"annotations\":{},\"labels\":{\"gatekeeper\":\"quarkus-petclinic-green\"},\"name\":\"quarkus-petclinic-bluegreen\",\"namespace\":\"petclinic-bluegreen-cromerob\"},\"spec\":{\"port\":{\"targetPort\":\"8080-tcp\"},\"to\":{\"kind\":\"Service\",\"name\":\"quarkus-petclinic-green\",\"weight\":100},\"wildcardPolicy\":\"None\"}}\n"},"labels":{"app":null,"gatekeeper":"quarkus-petclinic-green"}},"spec":{"to":{"name":"quarkus-petclinic-green"}}}
+to:
+Resource: "route.openshift.io/v1, Resource=routes", GroupVersionKind: "route.openshift.io/v1, Kind=Route"
+Name: "quarkus-petclinic-bluegreen", Namespace: "petclinic-bluegreen-cromerob"
+for: "lab-gatekeeper-files/lab2/deploy-app-green.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by required-label-route-cromerob] You must provide labels: {"app"}
+  
+  Error from server ([denied by required-label-service-cromerob] You must provide labels: {"app"}): error when creating "lab-gatekeeper-files/lab2/deploy-app-green.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by required-label-service-cromerob] You must provide labels: {"app"}
+
+
 ----
 
 == Dryrun
@@ -295,7 +326,7 @@ If we patch the existing constraints to change the enforcement mode to `dryrun` 
 
 *Web Console*:
 
-To deploy your resources go to `Explore`, search `RequiredLabelsDeployment` , `RequiredLabelsRoute` and `RequiredLabelsSvc`  and then go to `Instances` tab and select yours. Then on `Yaml` tab edit the enforcement mode to `dryrun`. Finally click on `Save`.
+To deploy your resources go to `Explore`, search `RequiredLabelsDeployment${USER}` , `RequiredLabelsRoute${USER}` and `RequiredLabelsSvc${USER}`  and then go to `Instances` tab and select yours. Then on `Yaml` tab edit the enforcement mode to `dryrun`. Finally click on `Save`.
 
 image:dryrun.png[dryrun]
 
@@ -313,15 +344,27 @@ cat lab-gatekeeper-files/lab2/deploy-app-green.yaml
 Patch the enforcement mode using the oc client:
 
 ----
-oc patch requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
-oc patch requiredlabelssvc.constraints.gatekeeper.sh/required-label-service  -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
-oc patch requiredlabelsroute.constraints.gatekeeper.sh/required-label-route -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
+oc patch requiredlabelsdeployment${USER}.constraints.gatekeeper.sh/required-label-deployment-${USER} -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
+
+ requiredlabelsdeployment${USER}.constraints.gatekeeper.sh/required-label-deployment-${USER} patched
+
+oc patch requiredlabelssvc${USER}.constraints.gatekeeper.sh/required-label-service-${USER}  -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
+
+ requiredlabelssvc${USER}.constraints.gatekeeper.sh/required-label-service-${USER} patched 
+
+oc patch requiredlabelsroute${USER}.constraints.gatekeeper.sh/required-label-route-${USER} -p '{"spec":{"enforcementAction":"dryrun"}}' --type merge
+
+ requiredlabelsroute${USER}.constraints.gatekeeper.sh/required-label-route-${USER} patched
 ----
 
 Then let's try to redeploy the missing labels resources:
 
 ----
 oc apply -f lab-gatekeeper-files/lab2/deploy-app-green.yaml -n petclinic-bluegreen-$USER
+
+ deployment.apps/quarkus-petclinic-green created
+ route.route.openshift.io/quarkus-petclinic-bluegreen configured
+ service/quarkus-petclinic-green created
 ----
 
 
@@ -330,9 +373,9 @@ Finally check the status of the violated constraints:
 WARNING: You may need to wait the audit interval time till status is updated.
 
 ----
-oc get requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment -o yaml
-oc get requiredlabelssvc.constraints.gatekeeper.sh/required-label-service -o yaml
-oc get requiredlabelsroute.constraints.gatekeeper.sh/required-label-route -o yaml
+oc get requiredlabelsdeployment${USER}.constraints.gatekeeper.sh/required-label-deployment-${USER} -o yaml
+oc get requiredlabelssvc${USER}.constraints.gatekeeper.sh/required-label-service-${USER} -o yaml
+oc get requiredlabelsroute${USER}.constraints.gatekeeper.sh/required-label-route-${USER} -o yaml
 ----
 
 

@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: livemigrate-template
+  name: template-constraint-containerratio-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: ContainerRatio
+  kind: ContainerRatio${USER}
   metadata:
-    name: container-ratio
+    name: container-ratio-${USER}
   spec:
     enforcementAction: deny
     match:

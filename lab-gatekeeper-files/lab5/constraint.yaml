@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: livemigrate-template
+  name: template-constraint-requiredresourcequota-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: RequiredResourceQuota
+  kind: RequiredResourceQuota${USER}
   metadata:
-    name: requiredresourcequota
+    name: requiredresourcequota${USER}
   spec:
     enforcementAction: deny      
     match:

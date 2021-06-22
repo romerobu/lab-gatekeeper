@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: livemigrate-template
+  name: template-constraint-requiredroute-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: RequiredRouteName
+  kind: RequiredRouteName${USER}
   metadata:
-    name: required-route-name
+    name: required-route-name-${USER}
   spec:
     enforcementAction: deny      
     match:

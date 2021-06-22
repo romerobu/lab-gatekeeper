@@ -184,6 +184,7 @@ For testing a positive case where a deployment accomplish the constraint run thi
 
 ----
 oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
+
   deployment.apps/quarkus-petclinic-blue created
   route.route.openshift.io/quarkus-petclinic-bluegreen created
   service/quarkus-petclinic-blue created
@@ -193,6 +194,7 @@ As you can see, you are allowed to create the resources and there is no violatio
 
 ----
 oc get constraints maxreplicas${USER} -o yaml
+
   apiVersion: constraints.gatekeeper.sh/v1beta1
   kind: MaxReplicascromerob
   metadata:
@@ -209,6 +211,7 @@ Finally verify to can navigate to the app you just deployed:
 
 ----
 oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
+
   Host: quarkus-petclinic-bluegreen-petclinic-bluegreen-${USER}.apps.${APPS_CLUSTER}.opentlc.com
 ----
 
@@ -237,6 +240,7 @@ For testing a negative case where deployment doesn't accomplish the constraint r
 
 ----
 oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"replicas":5}}' --type merge
+
   Error from server ([denied by maxreplicascromerob] Deployment 5 pods is higher than the maximum allowed of 3): admission webhook "validation.gatekeeper.sh" denied the request: [denied by maxreplicascromerob] Deployment 5 pods is higher than the maximum allowed of 3
 ----
 
@@ -259,4 +263,10 @@ To end this lab, delete every resource:
 
 ----
 oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
+  
+  pod "quarkus-petclinic-blue-75f67dfddf-8s5wg" deleted
+  pod "quarkus-petclinic-blue-75f67dfddf-mm24h" deleted
+  service "quarkus-petclinic-blue" deleted
+  deployment.apps "quarkus-petclinic-blue" deleted
+  route.route.openshift.io "quarkus-petclinic-bluegreen" deleted
 ----

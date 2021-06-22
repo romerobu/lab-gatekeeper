@@ -1,25 +1,35 @@
-apiVersion: templates.gatekeeper.sh/v1beta1
-kind: ConstraintTemplate
+apiVersion: template.openshift.io/v1
+kind: Template
 metadata:
-  name: requiredroutename
-spec:
-  crd:
-    spec:
-      names:
-        kind: RequiredRouteName
-      validation:
-        # Schema for the `parameters` field
-        openAPIV3Schema:
-          properties:
-            name:
-              type: string
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package requiredroutename
-        violation[{"msg": msg}] {
-          provided := input.review.object.metadata.name
-          required := input.parameters.name
-          not contains(provided,required)
-          msg := sprintf("Route must include string: %v", [required])
-        }
+  name: template-requiredroutename-${USER}
+objects:
+- apiVersion: templates.gatekeeper.sh/v1beta1
+  kind: ConstraintTemplate
+  metadata:
+    name: requiredroutename${USER}
+  spec:
+    crd:
+      spec:
+        names:
+          kind: RequiredRouteName${USER}
+        validation:
+          # Schema for the `parameters` field
+          openAPIV3Schema:
+            properties:
+              name:
+                type: string
+    targets:
+      - target: admission.k8s.gatekeeper.sh
+        rego: |
+          package requiredroutename${USER}
+          violation[{"msg": msg}] {
+            provided := input.review.object.metadata.name
+            required := input.parameters.name
+            not contains(provided,required)
+            msg := sprintf("Route must include string: %v", [required])
+          }
+parameters:
+- name: USER
+  description: "Username"
+  required: true
+  value: ${USER}          

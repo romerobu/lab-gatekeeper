@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: template-requiredlabel-route
+  name: template-constraint-requiredlabel-route-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: RequiredLabelsRoute
+  kind: RequiredLabelsRoute${USER}
   metadata:
-    name: required-label-route
+    name: required-label-route-${USER}
   spec:
     enforcementAction: deny
     match:

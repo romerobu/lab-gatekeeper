@@ -22,7 +22,9 @@ First of all we are going to deploy the constraint template where we are going t
 *CLI*:
 
 ----
-oc apply -f lab-gatekeeper-files/lab4/constraintTemplate.yaml
+oc process -f lab-gatekeeper-files/lab4/constraintTemplate.yaml  -p USER=$USER  | oc apply -f -
+
+ constrainttemplate.templates.gatekeeper.sh/containerratio${USER} created
 ----
 
 *Web Console*:
@@ -31,20 +33,20 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, then paste the yaml definition:
+Go to `Instances` tab and click on `Create ConstraintTemplate`, replace ${USER} for your username and then paste the yaml definition:
 
 ----
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: containerratio
+  name: containerratio${USER}
   annotations:
     description: Sets a maximum ratio for container resource limits to requests.
 spec:
   crd:
     spec:
       names:
-        kind: ContainerRatio
+        kind: ContainerRatio${USER}
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
@@ -54,7 +56,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package containerratio
+        package containerratio${USER}
 
         missing(obj, field) = true {
           not obj[field]
@@ -303,18 +305,20 @@ For this example parameters are:
 
 ----
 oc process -f lab-gatekeeper-files/lab4/constraint.yaml -p USER=$USER  | oc apply -f -
+
+ containerratio${USER}.constraints.gatekeeper.sh/container-ratio-${USER} created
 ----
 
 *Web Console*:
 
-After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a new CRD called `ContainerRatio` in the main menu.
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a new CRD called `ContainerRatio${USER}` in the main menu.
 Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: ContainerRatio
+kind: ContainerRatio${USER}
 metadata:
-  name: container-ratio
+  name: container-ratio-${USER}
 spec:
   enforcementAction: deny
   match:
@@ -342,6 +346,23 @@ If you navigate to the status section of this resource you will see why is not a
 
 ---- 
 oc apply -f lab-gatekeeper-files/lab4/deployment-app-blue-bad.yaml -n petclinic-bluegreen-$USER
+
+ deployment.apps/quarkus-petclinic-blue created
+ route.route.openshift.io/route-petclinic-bluegreen created
+ service/quarkus-petclinic-blue created
+----
+
+----
+oc get deployment.apps/quarkus-petclinic-blue -o yaml -n petclinic-bluegreen-$USER
+
+ ...
+ message: |-
+      admission webhook "validation.gatekeeper.sh" denied the request: [denied by container-ratio-cromerob] container <quarkus-petclinic> cpu limit <800m> is higher than the maximum allowed ratio of <3>
+      [denied by container-ratio-cromerob] container <quarkus-petclinic> memory limit <2Gi> is higher than the maximum allowed ratio of <3>
+    reason: FailedCreate
+    status: "True"
+    type: ReplicaFailure
+ ...
 ----
 
 *Web Console*:
@@ -434,6 +455,8 @@ For testing the positive case we are going to patch the deployment to request a 
 
 ----
 oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"quarkus-petclinic","image":"'quay.io/dsanchor/quarkus-petclinic:in-mem'","resources":{"limits":{"cpu":"550m","memory":"300Mi"},"requests":{"cpu":"200m","memory":"100Mi"}}}]}}}}' --type merge  -n petclinic-bluegreen-$USER
+
+ deployment.apps/quarkus-petclinic-blue patched
 ----
 
 *Web Console*:
@@ -452,7 +475,20 @@ To end this lab, delete all the resources:
 
 ----
 oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
+
+ pod "quarkus-petclinic-blue-7c759f74c-8grz6" deleted
+ pod "quarkus-petclinic-blue-7c759f74c-rfzqh" deleted
+ service "quarkus-petclinic-blue" deleted
+ deployment.apps "quarkus-petclinic-blue" deleted
+ route.route.openshift.io "route-petclinic-bluegreen" deleted
+ 
 oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-bluegreen-$USER
+
+ pod "quarkus-petclinic-green-5796cfb6c9-4f64d" deleted
+ pod "quarkus-petclinic-green-5796cfb6c9-7nfpg" deleted
+ service "quarkus-petclinic-green" deleted
+ deployment.apps "quarkus-petclinic-green" deleted
+ route.route.openshift.io "quarkus-petclinic-bluegreen" deleted
 ----
 
 

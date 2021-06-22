@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: template-maxreplicas-${USER}
+  name: template-constraint-maxreplicas-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
   kind: MaxReplicas${USER}
