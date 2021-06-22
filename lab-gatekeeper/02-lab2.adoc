@@ -299,6 +299,10 @@ Finally paste the corresponding section of the yaml description.
 cat lab-gatekeeper-files/lab2/deploy-app-green.yaml
 ----
 
+You will be prompted with this error message:
+
+image:rlerror.png[rlerror]
+
 *CLI*:
 
 ----

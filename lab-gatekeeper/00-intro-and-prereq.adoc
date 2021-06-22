@@ -24,6 +24,7 @@ Openshift web console
 - *$OCP_API*: Openshift API endpoint. We will use this endpoint when accesing the cluster from the `oc` cli.
 - *$USER*: your private user id used for Openshift authentication
 - *$PASSWORD*:  your secret password used for Openshift authentication
+- *$LABS_HOME*: name of the laboratory
 - *$APPS_NS*: namespace where you will deploy your apps during the whole series of labs
 
 Feel free to export these variables in your environment.
