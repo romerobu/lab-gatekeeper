@@ -25,7 +25,7 @@ Before deploying any constraint, let's verify again that `Config` resource defin
 *CLI*:
 
 ----
-oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
+$ oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-system
 
  ...
    sync:
@@ -48,16 +48,16 @@ You will see a list of objects on the `Sync` section, those are the resources ac
 
 === Deploy Constraint Template
 
-First of all we are going to deploy the constraint template where we are going to define how a namespace should have a deployed `ResourceQuota` for deploying any resource.
+First of all we are going to check the constraint template where we are going to define how a namespace should have a deployed `ResourceQuota` for deploying any resource.
 
 Additionally, on this constraint you can see how data inventory is accessed using the syntax we introduced at the beginning:
+
+As this is a cluster scoped resource, constraint template has been already deployed for you so you just need to create your parameterized constraint.
 
 *CLI*:
 
 ----
-oc process -f lab-gatekeeper-files/lab5/constraintTemplate.yaml  -p USER=$USER  | oc apply -f -
-
- constrainttemplate.templates.gatekeeper.sh/requiredresourcequota${USER} created
+$ oc get constraintTemplate requiredresourcequota -o yaml
 ----
 
 If you take a look to this template, you will see how your accessing the data inventory and comparing this data.
@@ -66,12 +66,12 @@ If you take a look to this template, you will see how your accessing the data in
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: resourcequota${USER}
+  name: resourcequota
 spec:
   crd:
     spec:
       names:
-        kind: ResourceQuota${USER}
+        kind: ResourceQuota
       validation:
         openAPIV3Schema:
           properties:
@@ -80,7 +80,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package resourcequota${USER}
+        package resourcequota
         violation[{"msg": msg}] {
           requestns := input.review.object.metadata.namespace
           existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
@@ -98,38 +98,9 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, replace $USER with your username then paste the yaml definition:
+Go to `Instances` tab and click on the existing constraint to see more details:
 
-----
-apiVersion: templates.gatekeeper.sh/v1beta1
-kind: ConstraintTemplate
-metadata:
-  name: requiredresourcequota${USER}
-spec:
-  crd:
-    spec:
-      names:
-        kind: RequiredResourceQuota${USER}
-      validation:
-        openAPIV3Schema:
-          properties:
-            name:
-              type: string       
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package requiredresourcequota${USER}
-        violation[{"msg": msg}] {
-          requestns := input.review.object.metadata.namespace
-          existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
-          not ns_exists(requestns,existingrqs)
-          msg = sprintf("The Pod could not be created because the %v namespace doesn't contain any ResourceQuota object",[requestns])
-        }
-        ns_exists(ns,arr) {
-          arr[_] = ns
-        }
-----
-
+*img
 
 === Deploy Constraint
 
@@ -142,14 +113,14 @@ Then we have to deploy constraint where we are going to define the parameters:
 *CLI*:
 
 ----
-oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc apply -f -
+$ oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc apply -f -
 
  requiredresourcequota${USER}.constraints.gatekeeper.sh/requiredresourcequota${USER} created
 ----
 
 *Web Console*:
 
-After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredResourceQuota${USER}` in the main menu.
+After creating the instance you should see the recently created resource in a list. Then as per your yaml definition you should be able to list a  CRD called `RequiredResourceQuota` in the main menu.
 
 Repeat the same procedure for this new CRD and paste your yaml definition after changing the ${USER} value for your username:
 
@@ -157,7 +128,7 @@ WARNING: It may take a while till those are listed.
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: RequiredResourceQuota${USER}
+kind: RequiredResourceQuota
 metadata:
   name: requiredresourcequota${USER}
 spec:
@@ -174,14 +145,14 @@ spec:
 
 === Test negative
 
-For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-beta-$USER` and another onw without it.
+For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-beta-$USER` and another now without it.
 
 For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
 
 *CLI*:
 
 ----
-oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
+$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
 
  Error from server ([denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-bluegreen-cromerob namespace doesn't contain any ResourceQuota object): error when creating "lab-gatekeeper-files/lab5/deployment-app-blue.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-bluegreen-cromerob namespace doesn't contain any ResourceQuota object
 ----
@@ -242,7 +213,7 @@ For testing the positive case we are going to deploy an app into a namespace wit
 *CLI*:
 
 ----
-oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
+$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
 
  deployment.apps/quarkus-petclinic-blue created
  route.route.openshift.io/route-petclinic-bluegreen created
