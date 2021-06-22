@@ -16,7 +16,7 @@ Once you are logged in you should be able to have enough privileges to create ga
 To start verify you are on your project:
 
 ----
-oc project petclinic-bluegreen-$USER
+$ oc project petclinic-bluegreen-$USER
 ----
 
 == Deploy constraint
@@ -25,6 +25,8 @@ oc project petclinic-bluegreen-$USER
 
 First of all you need to deploy the constraint template to define the rule pattern for limiting the amount of replicas.
 
+As this is a cluster scoped resource, constraint template has been already deployed for you so you just need to create your parameterized constraint.
+
 If you take a look to the template you will see first the type of value you will compare your replicas with and the pattern of the rule.
 Finally the error message it will be prompted when the webhook triggers this constraint.
 
@@ -32,12 +34,12 @@ Finally the error message it will be prompted when the webhook triggers this con
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: maxreplicas${USER}
+  name: maxreplicas
 spec:
   crd:
     spec:
       names:
-        kind: MaxReplicas${USER}
+        kind: MaxReplicas
       validation:
         openAPIV3Schema:
           properties:
@@ -46,7 +48,7 @@ spec:
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package maxreplicas${USER}
+        package maxreplicas
 
         violation[{"msg": msg}] {
           replicas := input.review.object.spec.replicas
@@ -56,7 +58,7 @@ spec:
         }
 ----
 
-You can deploy constraints both from the web console or cli:
+You can check constraint templates both from the web console or cli:
 
 *Web console*:
 
@@ -64,46 +66,14 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on `Create ConstraintTemplate`, then replace ${USER} with your username and paste the yaml definition:
-
-----
-apiVersion: templates.gatekeeper.sh/v1beta1
-kind: ConstraintTemplate
-metadata:
-  name: maxreplicas${USER}
-spec:
-  crd:
-    spec:
-      names:
-        kind: MaxReplicas${USER}
-      validation:
-        openAPIV3Schema:
-          properties:
-            replicas:
-              type: integer 
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package maxreplicas${USER}
-
-        violation[{"msg": msg}] {
-          replicas := input.review.object.spec.replicas
-          max_replicas := input.parameters.replicas
-          to_number(replicas) > to_number(max_replicas)
-          msg := sprintf("Deployment %v pods is higher than the maximum allowed of %v", [replicas, max_replicas])
-        }
-----
+Go to `Instances` tab and click on the existing constraint to see more details:
 
 *CLI*:
 
-You can deploy it with this command:
-
-Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
+You can check it with this command:
 
 ----
-oc process -f lab-gatekeeper-files/lab1/constraintTemplate.yaml  -p USER=$USER  | oc apply -f -
-
- constrainttemplate.templates.gatekeeper.sh/maxreplicas${USER} created
+$ oc get constraintTemplate maxreplicas
 ----
 
 As you can see, this constraint template is written using the rego syntax mentioned before. It compares that the constraint integer input is not greater than the replicas value of the object under test.
@@ -126,7 +96,7 @@ Repeat the same procedure for this new CRD and paste your yaml definition after 
 
 ----
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: MaxReplicas${USER}
+kind: MaxReplicas
 metadata:
   name: maxreplicas${USER}
 spec:
@@ -150,7 +120,7 @@ metadata:
   name: template-maxreplicas-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: MaxReplicas${USER}
+  kind: MaxReplicas
   metadata:
     name: maxreplicas${USER}
   spec:
@@ -172,8 +142,10 @@ parameters:
 
 You can deploy it with this command:
 
+WARNING: Bear in mind you don't usually need to create a template for deploying a constraint however as per required for making this lab multi user friendly we can deploy it with `oc process` command:
+
 ----
-oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc apply -f -
+$ oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc apply -f -
 
  maxreplicas${USER}.constraints.gatekeeper.sh/maxreplicas${USER} created
 ----
@@ -187,7 +159,7 @@ oc process -f lab-gatekeeper-files/lab1/constraint.yaml -p USER=$USER  | oc appl
 For testing a positive case where a deployment accomplish the constraint run this command to deploy an app whose deployment replicas value is 2:
 
 ----
-oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
+$ oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 
   deployment.apps/quarkus-petclinic-blue created
   route.route.openshift.io/quarkus-petclinic-bluegreen created
@@ -197,10 +169,10 @@ oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-bluegre
 As you can see, you are allowed to create the resources and there is no violation on the constraint status:
 
 ----
-oc get constraints maxreplicas${USER} -o yaml
+$ oc get constraints maxreplicas${USER} -o yaml
 
   apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: MaxReplicascromerob
+  kind: MaxReplicas
   metadata:
     annotations:
     ....
@@ -214,7 +186,7 @@ On the `status` part you can see two sections:
 Finally verify to can navigate to the app you just deployed:
 
 ----
-oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
+$ oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
 
   Host: quarkus-petclinic-bluegreen-petclinic-bluegreen-${USER}.apps.${APPS_CLUSTER}.opentlc.com
 ----
@@ -229,7 +201,7 @@ image:svc.png[service]
 Finally paste the corresponding section of the yaml description.
 
 ----
-cat lab-gatekeeper-files/lab1/deploy-app-blue.yaml
+$ cat lab-gatekeeper-files/lab1/deploy-app-blue.yaml
 ----
 
 After doing this you should be able to access the route. Go to `Networking`, then `Route` and click on `quarkus-petclinic-bluegreen`:
@@ -243,7 +215,7 @@ image:route.png[route]
 For testing a negative case where deployment doesn't accomplish the constraint run this command to patch current replicas value to 5:
 
 ----
-oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"replicas":5}}' --type merge
+$ oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"replicas":5}}' --type merge
 
   Error from server ([denied by maxreplicascromerob] Deployment 5 pods is higher than the maximum allowed of 3): admission webhook "validation.gatekeeper.sh" denied the request: [denied by maxreplicascromerob] Deployment 5 pods is higher than the maximum allowed of 3
 ----
@@ -266,7 +238,7 @@ As you can see you cannot create this deployment resource and you are prompted w
 To end this lab, delete every resource:
 
 ----
-oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
+$ oc delete all --selector app=quarkus-petclinic-blue  -n petclinic-bluegreen-$USER
   
   pod "quarkus-petclinic-blue-75f67dfddf-8s5wg" deleted
   pod "quarkus-petclinic-blue-75f67dfddf-mm24h" deleted
