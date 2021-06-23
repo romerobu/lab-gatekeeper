@@ -374,3 +374,27 @@ spec:
 ----
 
 After finishing this lab, you should have two apps deployed (blue and green) on namespace petclinic-bluegreen-${USER} which accomplish every constraint deployed.
+
+You can try to switch between green and blue deployment and app should be running and reachable:
+
+----
+$ oc patch route/bluegreen -p '{"spec":{"to":{"name":"quarkus-petclinic-blue"}}}'
+
+  route.route.openshift.io/route-petclinic-bluegreen patched
+----
+
+----
+$ oc get route -o jsonpath='{range .items[*].spec}{"Host: "}{.host}{"\n"}{end}' -n petclinic-bluegreen-$USER
+
+  Host: quarkus-petclinic-bluegreen-petclinic-bluegreen-${USER}.apps.${APPS_CLUSTER}.opentlc.com
+----
+
+This means you managed to deploy a functional blue/green deployment application which accomplish these restrictions:
+
+- Maximun replicas allowed
+- Required labels for deployment, service and route
+- Required route valid pattern route name
+- Required resource quota per namespace
+- Restricted pod ratio consumption
+
+This is just an example of what you can do by implementing Open Policy Agent and Gatekeeper operator. Hope you enjoyed this lab!
