@@ -30,5 +30,5 @@ spec:
   sync:
     syncOnly:
       - group: ""
-        version: "*"
-        kind: "Namespace" 
+        version: "v1"
+        kind: "ResourceQuota" 

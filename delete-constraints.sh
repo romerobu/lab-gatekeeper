@@ -1,12 +1,12 @@
 #!/bin/bash
 
-oc delete requiredresourcequota.constraints.gatekeeper.sh/requiredresourcequota
-oc delete requiredlabelsroute.constraints.gatekeeper.sh/required-label-route
-oc delete maxreplicas.constraints.gatekeeper.sh/maxreplicas
-oc delete containerratio.constraints.gatekeeper.sh/container-ratio
-oc delete requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment
-oc delete requiredroutename.constraints.gatekeeper.sh/required-route-name
-oc delete requiredlabelssvc.constraints.gatekeeper.sh/required-label-service
+oc delete requiredresourcequota.constraints.gatekeeper.sh/requiredresourcequota${USER}
+oc delete requiredlabelsroute.constraints.gatekeeper.sh/required-label-route-${USER}
+oc delete maxreplicas.constraints.gatekeeper.sh/maxreplicas${USER}
+oc delete containerratio.constraints.gatekeeper.sh/container-ratio-${USER}
+oc delete requiredlabelsdeployment.constraints.gatekeeper.sh/required-label-deployment-${USER}
+oc delete requiredroutename.constraints.gatekeeper.sh/required-route-name-${USER}
+oc delete requiredlabelssvc.constraints.gatekeeper.sh/required-label-service-${USER}
 oc delete constraintTemplate containerratio
 oc delete constraintTemplate maxreplicas
 oc delete constraintTemplate requiredlabelsdeployment

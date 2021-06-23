@@ -12,7 +12,7 @@ objects:
     match:
       namespaces:
         - "petclinic-bluegreen-${USER}"
-        - "petclinic-beta-${USER}"      
+        - "petclinic-test-${USER}"      
       kinds:
         - apiGroups: ["*"]
           kinds: ["Deployment"]
