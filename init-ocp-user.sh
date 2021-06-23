@@ -85,6 +85,7 @@ do
     # create namespace
     oc new-project petclinic-bluegreen-$user
     oc new-project petclinic-beta-$user
+    oc new-project petclinic-test-$user
     # add role
     oc adm policy add-cluster-role-to-user gatekeeper-ops-role $user
     oc adm policy add-role-to-user admin $user -n petclinic-bluegreen-$user
