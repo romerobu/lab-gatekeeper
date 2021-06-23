@@ -70,6 +70,9 @@ oc apply -f config/config.yaml
 
 sleep 5
 
+# Install web terminal operator
+# Pending
+
 # Creating role
 
 oc apply -f lab-gatekeeper-files/role/clusterrole.yaml
@@ -86,6 +89,7 @@ do
     oc new-project petclinic-bluegreen-$user
     oc new-project petclinic-beta-$user
     oc new-project petclinic-test-$user
+    oc new-project $user-terminal
     # add role
     oc adm policy add-cluster-role-to-user gatekeeper-ops-role $user
     oc adm policy add-role-to-user admin $user -n petclinic-bluegreen-$user
@@ -94,4 +98,8 @@ do
     oc adm policy add-role-to-user admin $user -n petclinic-beta-$user
     # create resource quota in beta namespace
     oc apply -f lab-gatekeeper-files/lab5/rs.yaml -n petclinic-bluegreen-$user
+
+    # create dev-workspace de web terminal
+    # Pending
+    cat ./config/dev-workspace.yaml | USER=$user envsubst | oc apply -f -
 done
