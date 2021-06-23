@@ -31,8 +31,8 @@ $ oc get config.config.gatekeeper.sh/config -o yaml -n openshift-gatekeeper-syst
    sync:
     syncOnly:
     - group: ""
-      kind: Namespace
-      version: '*'
+      kind: ResourceQuota
+      version: 'v1'
  ...
 ----
 
@@ -106,7 +106,7 @@ image:instancequota.png[instancequota]
 
 Then we have to deploy constraint where we are going to define the parameters:
 
- - Namespace: `petclinic-bluegreen-$USER` and `petclinic-beta-$USER`.
+ - Namespace: `petclinic-bluegreen-$USER` and `petclinic-test-$USER`.
  - Resource under test: `Deployment`.
  - Enforcement action: `deny`.
 
@@ -136,7 +136,7 @@ spec:
   match:
     namespaces:
       - "petclinic-bluegreen-${USER}"      
-      - "petclinic-beta-${USER}"
+      - "petclinic-test-${USER}"
     kinds:
       - apiGroups: ["*"]
         kinds: ["Deployment"]
@@ -148,26 +148,20 @@ spec:
 
 For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-bluegreen-$USER` and another now without it.
 
-For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
-As this namespace is excluded from webhook process, we need to check audit logs to see if this constraint is working:
+For testing the negative case we are going to try to deploy an app into a namespace without a resource quota:
 
 *CLI*:
 
 ----
-$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
+$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-test-$USER
 
-  deployment.apps/quarkus-petclinic-blue created
-  service/quarkus-petclinic-blue created
-
-$ oc get requiredresourcequota.constraints.gatekeeper.sh/requiredresourcequota${USER} -o yaml
-  
-  ...
+  Error from server ([denied by requiredresourcequotauser3] Error:The Pod could not be created because the petclinic-test-${USER} namespace doesn't contain any ResourceQuota object): error when creating "lab-gatekeeper-files/lab5/deployment-app-green.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by requiredresourcequota${USER}] Error:The Pod could not be created because the petclinic-test-${USER} namespace doesn't contain any ResourceQuota object
 
 ----
 
 *Web Console*:
 
-As in the previous labs in namespace `petclinic-beta-$USER`:
+As in the previous labs in namespace `petclinic-test-$USER`:
 
 ----
 kind: Deployment
@@ -214,7 +208,7 @@ Then go to `Explore`, search for `RequiredResourceQuota` and select your instanc
 
 image:errorquota.png[errorquota]
 
-As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-beta-$USER namespace doesn't contain any ResourceQuota object`.
+As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-test-$USER namespace doesn't contain any ResourceQuota object`.
 
 
 === Test positive
