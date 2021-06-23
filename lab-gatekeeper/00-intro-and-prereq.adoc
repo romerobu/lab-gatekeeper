@@ -56,7 +56,7 @@ Then switch to `Administrator` perspective by clicking on the upper left banner:
 
 image:administrator.png[administrator]
 
-If you have successfully logged in, you will landed at the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER` and `openshift-gatekeeper-system`.
+If you have successfully logged in, you will landed at the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER`, `petclinic-test-$USER` and `openshift-gatekeeper-system`.
 
 image:namespaces.png[namespaces]
 
@@ -95,6 +95,7 @@ You have access to the following projects and can switch between them with ' pro
   * openshift-gatekeeper-system
     openshift-operators
     petclinic-beta-$USER
+    petclinic-test-$USER
     petclinic-bluegreen-$USER
 ----
 
