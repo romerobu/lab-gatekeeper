@@ -149,13 +149,20 @@ spec:
 For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-bluegreen-$USER` and another now without it.
 
 For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
+As this namespace is excluded from webhook process, we need to check audit logs to see if this constraint is working:
 
 *CLI*:
 
 ----
 $ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
 
- Error from server ([denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-beta-cromerob namespace doesn't contain any ResourceQuota object): error when creating "lab-gatekeeper-files/lab5/deployment-app-blue.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-beta-cromerob namespace doesn't contain any ResourceQuota object
+  deployment.apps/quarkus-petclinic-blue created
+  service/quarkus-petclinic-blue created
+
+$ oc get requiredresourcequota.constraints.gatekeeper.sh/requiredresourcequota${USER} -o yaml
+  
+  ...
+
 ----
 
 *Web Console*:
@@ -203,9 +210,12 @@ spec:
   progressDeadlineSeconds: 600
 ----
 
-image:rserror.png[rserror]
+Then go to `Explore`, search for `RequiredResourceQuota` and select your instance:
+
+image:errorquota.png[errorquota]
 
 As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-beta-$USER namespace doesn't contain any ResourceQuota object`.
+
 
 === Test positive
 
