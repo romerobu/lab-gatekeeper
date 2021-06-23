@@ -4,7 +4,7 @@ apiVersion: apps/v1
 metadata:
   name: quarkus-petclinic-green
   labels:
-    gatekeeper: quarkus-petclinic-green
+    app: quarkus-petclinic-green
 spec:
   replicas: 2
   selector:
