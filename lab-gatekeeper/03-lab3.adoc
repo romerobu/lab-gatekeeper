@@ -53,7 +53,7 @@ As this is a cluster scoped resource, constraint template has been already deplo
 *CLI*: 
 
 ----
-$ oc get constraintTemplate requiredroutenamecromerob
+$ oc get constraintTemplate requiredroutename -o yaml
 ----
 
 If you take a look to this template, you will see in this case you are using `contains` verification.
@@ -92,9 +92,9 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on the existing constraint to see more details:
+Go to `Instances` tab and click on the existing constraint template `requiredroutename` to see more details:
 
-*img
+image:instancerequiredroute.png[instancerequiredroute]
 
 === Deploy Constraint 
 
@@ -112,7 +112,7 @@ For this example parameters are:
 ----
 $ oc process -f lab-gatekeeper-files/lab3/constraint.yaml -p USER=$USER  | oc apply -f -
 
- requiredroutenamecromerob.constraints.gatekeeper.sh/required-route-name-cromerob created
+ requiredroutename.constraints.gatekeeper.sh/required-route-name-${USER} created
 ----
 
 *Web Console*:
@@ -209,6 +209,14 @@ $ oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-beta-
  deployment.apps "quarkus-petclinic-green" deleted
  route.route.openshift.io "quarkus-petclinic-bluegreen" deleted
 
+$ oc delete all --selector gatekeeper=quarkus-petclinic-green -n petclinic-bluegreen-$USER
+
+ pod "quarkus-petclinic-green-5796cfb6c9-gfkff" deleted
+ pod "quarkus-petclinic-green-5796cfb6c9-tvtqq" deleted
+ service "quarkus-petclinic-green" deleted
+ deployment.apps "quarkus-petclinic-green" deleted
+ route.route.openshift.io "quarkus-petclinic-bluegreen" deleted
+
 $ oc apply -f lab-gatekeeper-files/lab3/deploy-app-blue.yaml -n petclinic-bluegreen-$USER
 
  deployment.apps/quarkus-petclinic-blue created
@@ -242,7 +250,7 @@ First you need to delete manually the existing resources:
 Go to `Workloads` and `Deployments`. Select `petclinic-bluegreen-$USER` namespace and delete the deployment containint the label `app=quarkus-petclinic-blue`. Now change namespace to `petclinic-beta-$USER` and delete the deployment containing the label `gatekeeper=quarkus-petclinic-green`.
 Repeat this process for `Services` and `Routes`.
 
-Once your namespaces are empty deploy these reources as in the previous labs in namespace `petclinic-bluegreen-$USER`:
+Once your namespaces are empty deploy these resources as in the previous labs in namespace `petclinic-bluegreen-$USER`:
 
 ----
 kind: Deployment

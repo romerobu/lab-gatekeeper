@@ -4,7 +4,7 @@ metadata:
   name: template-constraint-containerratio-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: ContainerRatio${USER}
+  kind: ContainerRatio
   metadata:
     name: container-ratio-${USER}
   spec:

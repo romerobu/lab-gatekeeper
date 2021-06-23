@@ -61,18 +61,20 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on the existing constraint to see more details:
+Go to `Instances` tab and click on the existing constraint templates `requiredlabelsdeployment`, `requiredlabelsroute` and `requiredlabelssvc` to see more details:
+
+image:instancesrequiredlabels.png[instancesrequiredlabels]
 
 *CLI*:
 
 You can check the templates with this command:
 
 ----
-$ oc get constraintTemplate requiredlabelsdeployment
+$ oc get constraintTemplate requiredlabelsdeployment -o yaml
 
-$ oc get constraintTemplate requiredlabelsroute
+$ oc get constraintTemplate requiredlabelsroute -o yaml
 
-$ oc get constraintTemplate requiredlabelssvc
+$ oc get constraintTemplate requiredlabelssvc -o yaml
 ----
 
 === Deploy Constraint 
@@ -175,7 +177,76 @@ To deploy your resources go to `Workloads` and `Networking`, then on `Deployment
 Finally paste the corresponding section of the yaml description.
 
 ----
-$ cat lab-gatekeeper-files/lab2/deploy-app-blue.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-petclinic-blue
+  template:
+    metadata:
+      labels:
+        app: quarkus-petclinic-blue
+        deployment: quarkus-petclinic-blue
+    spec:
+      containers:
+        - name: quarkus-petclinic
+          image: 'quay.io/dsanchor/quarkus-petclinic:in-mem'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+
+----
+
+----
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: quarkus-petclinic-bluegreen
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  to:
+    kind: Service
+    name: quarkus-petclinic-blue
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  wildcardPolicy: None
+----
+
+----
+kind: Service
+apiVersion: v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: quarkus-petclinic-blue
+    deployment: quarkus-petclinic-blue
+  type: ClusterIP
+  sessionAffinity: None
 ----
 
 *CLI*:

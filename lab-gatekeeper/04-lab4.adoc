@@ -285,9 +285,9 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on the existing constraint to see more details:
+Go to `Instances` tab and click on the existing constraint template `containerratio` to see more details:
 
-*img
+image:instanceratio.png[instanceratio]
 
 === Deploy Constraint
 
@@ -407,7 +407,9 @@ spec:
       maxSurge: 25%
   revisionHistoryLimit: 10
   progressDeadlineSeconds: 600
----
+----
+
+----
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
@@ -422,7 +424,9 @@ spec:
   port:
     targetPort: 8080-tcp
   wildcardPolicy: None
----
+----
+
+----
 kind: Service
 apiVersion: v1
 metadata:
@@ -457,6 +461,20 @@ $ oc patch deployment/quarkus-petclinic-blue -p '{"spec":{"template":{"spec":{"c
 
  deployment.apps/quarkus-petclinic-blue patched
 ----
+
+If you check this deployment again you won't see the error any more and replicas will be 2:
+
+----
+$ oc get deployment.apps/quarkus-petclinic-blue -o yaml -n petclinic-bluegreen-$USER
+
+ ....
+ status:
+  availableReplicas: 2
+  conditions:
+ ....
+
+----
+
 
 *Web Console*:
 

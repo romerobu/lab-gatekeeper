@@ -4,7 +4,7 @@ metadata:
   name: template-constraint-requiredlabel-deployment-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: RequiredLabelsDeployment${USER}
+  kind: RequiredLabelsDeployment
   metadata:
     name: required-label-deployment-${USER}
   spec:

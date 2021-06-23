@@ -9,7 +9,7 @@
 [Abstract]
 This lab aims to introduce how Gatekeeper works and its basic configuration.
  
-If your environment was set up properly you should be able to log in with your `gatekeeper-ops-role user`.
+If your environment was set up properly you should be able to log in with your `gatekeeper-ops-role` user.
 
 Once you are logged in you should be able to have enough privileges to create gatekeeper resources like constraints and view resources like gatekeeper and config but not `cluster-admin`.
 
@@ -66,14 +66,16 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on the existing constraint to see more details:
+Go to `Instances` tab and click on the existing constraint template `maxreplicas` to see more details:
+
+image:instancemaxreplicas.png[instancemaxreplicas]
 
 *CLI*:
 
 You can check it with this command:
 
 ----
-$ oc get constraintTemplate maxreplicas
+$ oc get constraintTemplate maxreplicas -o yaml
 ----
 
 As you can see, this constraint template is written using the rego syntax mentioned before. It compares that the constraint integer input is not greater than the replicas value of the object under test.
@@ -169,7 +171,7 @@ $ oc apply -f  lab-gatekeeper-files/lab1/deploy-app-blue.yaml -n petclinic-blueg
 As you can see, you are allowed to create the resources and there is no violation on the constraint status:
 
 ----
-$ oc get constraints maxreplicas${USER} -o yaml
+$ oc get constraints maxreplicas.constraints.gatekeeper.sh/maxreplicas${USER} -o yaml
 
   apiVersion: constraints.gatekeeper.sh/v1beta1
   kind: MaxReplicas

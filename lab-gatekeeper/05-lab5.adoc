@@ -60,7 +60,7 @@ As this is a cluster scoped resource, constraint template has been already deplo
 $ oc get constraintTemplate requiredresourcequota -o yaml
 ----
 
-If you take a look to this template, you will see how your accessing the data inventory and comparing this data.
+If you take a look to this template, you will see how you are accessing the data inventory and comparing this data.
 
 ----
 apiVersion: templates.gatekeeper.sh/v1beta1
@@ -98,15 +98,15 @@ Go to `Home` -> `Explore` -> Type `ConstraintTemplate` -> Select `v1beta1` versi
 
 Once you have selected `ConstraintTemplate` you will navigate to a page where you see the resource details.
 
-Go to `Instances` tab and click on the existing constraint to see more details:
+Go to `Instances` tab and click on the existing constraint template `requiredresourcequota` to see more details:
 
-*img
+image:instancequota.png[instancequota]
 
 === Deploy Constraint
 
 Then we have to deploy constraint where we are going to define the parameters:
 
- - Namespace: `petclinic-bluegreen-$USER`.
+ - Namespace: `petclinic-bluegreen-$USER` and `petclinic-beta-$USER`.
  - Resource under test: `Deployment`.
  - Enforcement action: `deny`.
 
@@ -115,7 +115,7 @@ Then we have to deploy constraint where we are going to define the parameters:
 ----
 $ oc process -f lab-gatekeeper-files/lab5/constraint.yaml -p USER=$USER  | oc apply -f -
 
- requiredresourcequota${USER}.constraints.gatekeeper.sh/requiredresourcequota${USER} created
+ requiredresourcequota.constraints.gatekeeper.sh/requiredresourcequota${USER} created
 ----
 
 *Web Console*:
@@ -136,6 +136,7 @@ spec:
   match:
     namespaces:
       - "petclinic-bluegreen-${USER}"      
+      - "petclinic-beta-${USER}"
     kinds:
       - apiGroups: ["*"]
         kinds: ["Deployment"]
@@ -145,21 +146,21 @@ spec:
 
 === Test negative
 
-For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-beta-$USER` and another now without it.
+For testing this constraint, our environment has two namespaces, one with a deployed resource quota resource `petclinic-bluegreen-$USER` and another now without it.
 
 For testing the negative case we are going to try to deploy an app into a namespace without a resource quota.
 
 *CLI*:
 
 ----
-$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
+$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
 
- Error from server ([denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-bluegreen-cromerob namespace doesn't contain any ResourceQuota object): error when creating "lab-gatekeeper-files/lab5/deployment-app-blue.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-bluegreen-cromerob namespace doesn't contain any ResourceQuota object
+ Error from server ([denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-beta-cromerob namespace doesn't contain any ResourceQuota object): error when creating "lab-gatekeeper-files/lab5/deployment-app-blue.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by requiredresourcequotacromerob] The Pod could not be created because the petclinic-beta-cromerob namespace doesn't contain any ResourceQuota object
 ----
 
 *Web Console*:
 
-As in the previous labs in namespace `petclinic-bluegreen-$USER`:
+As in the previous labs in namespace `petclinic-beta-$USER`:
 
 ----
 kind: Deployment
@@ -204,7 +205,7 @@ spec:
 
 image:rserror.png[rserror]
 
-As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-bluegreen-$USER namespace doesn't contain any ResourceQuota object`.
+As there is no resource quota, you should see error message `The Pod could not be created because the petclinic-beta-$USER namespace doesn't contain any ResourceQuota object`.
 
 === Test positive
 
@@ -213,34 +214,39 @@ For testing the positive case we are going to deploy an app into a namespace wit
 *CLI*:
 
 ----
-$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-beta-$USER
+$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-green.yaml -n petclinic-bluegreen-$USER
+
+ deployment.apps/quarkus-petclinic-green created
+ route.route.openshift.io/route-petclinic-bluegreen created
+ service/quarkus-petclinic-service created
+
+$ oc apply -f lab-gatekeeper-files/lab5/deployment-app-blue.yaml -n petclinic-bluegreen-$USER
 
  deployment.apps/quarkus-petclinic-blue created
- route.route.openshift.io/route-petclinic-bluegreen created
  service/quarkus-petclinic-blue created
 ----
 
 *Web Console*:
 
-Now try to redeploy you app in the namespace `petclinic-beta-${USER}` with a deployed `ResourceQuota`.
+Now try to redeploy you app in the namespace `petclinic-bluegreen-${USER}` with a deployed `ResourceQuota`.
 
 ----
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: quarkus-petclinic-blue
+  name: quarkus-petclinic-green
   labels:
-    app: quarkus-petclinic-blue
+    app: quarkus-petclinic-green
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: quarkus-petclinic-blue
+      app: quarkus-petclinic-green
   template:
     metadata:
       labels:
-        app: quarkus-petclinic-blue
-        deployment: quarkus-petclinic-blue
+        app: quarkus-petclinic-green
+        deployment: quarkus-petclinic-green
     spec:
       containers:
         - name: quarkus-petclinic
@@ -271,15 +277,76 @@ apiVersion: route.openshift.io/v1
 metadata:
   name: route-petclinic-bluegreen
   labels:
-    app: quarkus-petclinic-blue
+    app: quarkus-petclinic-green
 spec:
   to:
     kind: Service
-    name: quarkus-petclinic-blue
+    name: quarkus-petclinic-green
     weight: 100
   port:
      targetPort: 8080-tcp
   wildcardPolicy: None
+----
+
+----
+kind: Service
+apiVersion: v1
+metadata:
+  name: quarkus-petclinic-green
+  labels:
+    app: quarkus-petclinic-green
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: quarkus-petclinic-green
+    deployment: quarkus-petclinic-green
+  type: ClusterIP
+  sessionAffinity: None
+----
+
+----
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quarkus-petclinic-blue
+  labels:
+    app: quarkus-petclinic-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-petclinic-blue
+  template:
+    metadata:
+      labels:
+        app: quarkus-petclinic-blue
+        deployment: quarkus-petclinic-blue
+    spec:
+      containers:
+        - name: quarkus-petclinic
+          image: 'quay.io/dsanchor/quarkus-petclinic:in-mem'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "200Mi"
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
 ----
 
 ----
@@ -302,3 +369,4 @@ spec:
   sessionAffinity: None
 ----
 
+After finishing this lab, you should have two apps deployed (blue and green) on namespace petclinic-bluegreen-${USER} which accomplish every constraint deployed.

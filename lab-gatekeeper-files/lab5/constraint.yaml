@@ -4,14 +4,15 @@ metadata:
   name: template-constraint-requiredresourcequota-${USER}
 objects:
 - apiVersion: constraints.gatekeeper.sh/v1beta1
-  kind: RequiredResourceQuota${USER}
+  kind: RequiredResourceQuota
   metadata:
     name: requiredresourcequota${USER}
   spec:
     enforcementAction: deny      
     match:
       namespaces:
-        - "petclinic-bluegreen-${USER}"      
+        - "petclinic-bluegreen-${USER}"
+        - "petclinic-beta-${USER}"      
       kinds:
         - apiGroups: ["*"]
           kinds: ["Deployment"]

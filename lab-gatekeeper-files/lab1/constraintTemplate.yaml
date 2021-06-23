@@ -1,36 +1,26 @@
-apiVersion: template.openshift.io/v1
-kind: Template
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
 metadata:
-  name: template-maxreplicas-${USER}
-objects:
-- apiVersion: templates.gatekeeper.sh/v1beta1
-  kind: ConstraintTemplate
-  metadata:
-    name: maxreplicas${USER}
-  spec:
-    crd:
-      spec:
-        names:
-          kind: MaxReplicas${USER}
-        validation:
-          openAPIV3Schema:
-            properties:
-              replicas:
-                type: integer 
-    targets:
-      - target: admission.k8s.gatekeeper.sh
-        rego: |
-          package maxreplicas${USER}
+  name: maxreplicas
+spec:
+  crd:
+    spec:
+      names:
+        kind: MaxReplicas
+      validation:
+        openAPIV3Schema:
+          properties:
+            replicas:
+              type: integer 
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+       package maxreplicas
 
-          violation[{"msg": msg}] {
-            replicas := input.review.object.spec.replicas
-            max_replicas := input.parameters.replicas
-            to_number(replicas) > to_number(max_replicas)
-            msg := sprintf("Deployment %v pods is higher than the maximum allowed of %v", [replicas, max_replicas])
-          }        
-parameters:
-- name: USER
-  description: "Username"
-  required: true
-  value: ${USER}
+        violation[{"msg": msg}] {
+          replicas := input.review.object.spec.replicas
+          max_replicas := input.parameters.replicas
+          to_number(replicas) > to_number(max_replicas)
+          msg := sprintf("Deployment %v pods is higher than the maximum allowed of %v", [replicas, max_replicas])
+        }
 

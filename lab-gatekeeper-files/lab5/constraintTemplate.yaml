@@ -1,37 +1,27 @@
-apiVersion: template.openshift.io/v1
-kind: Template
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
 metadata:
-  name: template-requiredresourcequota-${USER}
-objects:
-- apiVersion: templates.gatekeeper.sh/v1beta1
-  kind: ConstraintTemplate
-  metadata:
-    name: requiredresourcequota${USER}
-  spec:
-    crd:
-      spec:
-        names:
-          kind: RequiredResourceQuota${USER}
-        validation:
-          openAPIV3Schema:
-            properties:
-              name:
-                type: string       
-    targets:
-      - target: admission.k8s.gatekeeper.sh
-        rego: |
-          package requiredresourcequota${USER}
-          violation[{"msg": msg}] {
-            requestns := input.review.object.metadata.namespace
-            existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
-            not ns_exists(requestns,existingrqs)
-            msg = sprintf("The Pod could not be created because the %v namespace doesn't contain any ResourceQuota object",[requestns])
-          }
-          ns_exists(ns,arr) {
-            arr[_] = ns
-          }
-parameters:
-- name: USER
-  description: "Username"
-  required: true
-  value: ${USER}          
+  name: requiredresourcequota
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequiredResourceQuota
+      validation:
+        openAPIV3Schema:
+          properties:
+            name:
+              type: string       
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requiredresourcequota
+        violation[{"msg": msg}] {
+          requestns := input.review.object.metadata.namespace
+          existingrqs := {e | e := data.inventory.namespace[requestns]["v1"]["ResourceQuota"][_]["metadata"]["namespace"]}
+          not ns_exists(requestns,existingrqs)
+          msg = sprintf("The Pod could not be created because the %v namespace doesn't contain any ResourceQuota object",[requestns])
+        }
+        ns_exists(ns,arr) {
+          arr[_] = ns
+        }
