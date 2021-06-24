@@ -103,4 +103,7 @@ do
 
     # create dev-workspace de web terminal
     cat ./config/dev-workspace.yaml | USER=$user envsubst | oc apply -f -
+
+    # create config map
+    cat ./config/configmap.yaml | USER=$user envsubst | oc apply -f -
 done
