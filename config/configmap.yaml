@@ -8,7 +8,7 @@ data:
     OCP_CONSOLE=https://console-openshift-console.apps.cluster-4a3f.sandbox453.opentlc.com
     OCP_API=https://api.cluster-4a3f.sandbox453.opentlc.com:6443
     USER=${USER}
-    PASSWORD=redhat
+    PASSWORD=${PASSWORD}
     APPS_NS=deploy-app
     LABS_HOME=lab-gatekeeper
     APPS_CLUSTER=cluster-4a3f.sandbox453
