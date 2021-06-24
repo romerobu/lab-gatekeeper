@@ -97,6 +97,7 @@ You have access to the following projects and can switch between them with ' pro
     petclinic-beta-$USER
     petclinic-test-$USER
     petclinic-bluegreen-$USER
+    $USER-terminal
 ----
 
 === Web terminal
@@ -105,7 +106,7 @@ In order to avoid any kind of problem or connectivity issue between your laptop 
 
 To access the `web-terminal` click on the `>_` icon which is located on the righ corner on the top:
 
-image:web-terminal.png[Web terminal]
+image:menu.png[Web terminal]
 
 Then, you will be asked to choose a project to initialize the terminal. Select the one that ends with `-terminal`:
 
