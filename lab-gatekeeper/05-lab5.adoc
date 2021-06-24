@@ -397,4 +397,4 @@ This means you managed to deploy a functional blue/green deployment application 
 - Required resource quota per namespace
 - Restricted pod ratio consumption
 
-This is just an example of what you can do by implementing Open Policy Agent and Gatekeeper operator. Hope you enjoyed this lab!
+This is just an example of what you can do by implementing Open Policy Agent and Gatekeeper operator.
