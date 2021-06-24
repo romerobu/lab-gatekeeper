@@ -25,21 +25,8 @@ Openshift web console
 - *$USER*: your private user id used for Openshift authentication
 - *$PASSWORD*:  your secret password used for Openshift authentication
 - *$LABS_HOME*: name of the laboratory
-- *$APPS_NS*: namespace where you will deploy your apps during the whole series of labs
 
-Feel free to export these variables in your environment.
-
-There is also a list of files needed to run the labs. These files can be found in the following github repository:
-
-https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper/-/tree/master/lab-gatekeeper-files
-
-Clone the repository to your desired location, that will then be referred as *$LABS_HOME* during the labs:
-
-....
-$ git clone https://gitlab.consulting.redhat.com/cromerob/lab-opa-gatekeeper.git
-
-cd $LABS_HOME
-....
+Feel free to export these variables in your environment if you don't have any connectivity issue.
 
 :numbered:
 == Access to Openshift Web Console
@@ -56,11 +43,11 @@ Then switch to `Administrator` perspective by clicking on the upper left banner:
 
 image:administrator.png[administrator]
 
-If you have successfully logged in, you will landed at the main dashboard with your current projects. As seen below, you should have access to 4 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER`, `petclinic-test-$USER` and `openshift-gatekeeper-system`.
+If you have successfully logged in, you will landed at the main dashboard with your current projects. As seen below, you should have access to 6 namespaces, `openshift-operators`, `petclinic-bluegreen-$USER`, `petclinic-beta-$USER`, `petclinic-test-$USER` and `openshift-gatekeeper-system`. Furthermore you will find an additional namespace for web terminal called `$USER-terminal`.
 
 image:namespaces.png[namespaces]
 
-It is time to get the Openshift CLI binaries for your specific OS. 
+Depending on where you are going to run this lab, you can do it from your CLI or from your own OCP Web terminal. Jump to the section that best suits your needs.
 
 === Download the CLI 
 
@@ -135,6 +122,22 @@ If you want to check the content of the `ConfigMap`, feel free to do so through 
 ....
 $ oc get cm user-config -o yaml
 ....
+
+
+=== Clone lab
+
+There is also a list of files needed to run the labs. These files can be found in the following github repository:
+
+https://github.com/romerobu/lab-gatekeeper.git
+
+Clone the repository to your desired location, that will then be referred as *$LABS_HOME* during the labs:
+
+....
+$ git clone https://github.com/romerobu/lab-gatekeeper.git
+
+cd $LABS_HOME
+....
+
 
 === Gatekeeper operator
 
