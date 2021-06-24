@@ -48,8 +48,8 @@ echo "OAuth should has been now updated"
 
 oc apply -f config/install-operator.yaml
 
-echo -n "Waiting for pods ready..."
-while [[ $(oc get pods  -n openshift-operators  -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do echo -n "." && sleep 1; done; echo -n -e "  [OK]\n"
+#echo -n "Waiting for pods ready..."
+#while [[ $(oc get pods  -n openshift-operators  -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do echo -n "." && sleep 1; done; echo -n -e "  [OK]\n"
 
 sleep 5
 
@@ -58,8 +58,8 @@ sleep 5
 echo -n "Creating gatekeeper..."
 oc apply -f config/create-gatekeeper.yaml
 
-echo -n "Waiting for pods ready..."
-while [[ $(oc get pods  -n openshift-gatekeeper-system  -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True True True" ]]; do echo -n "." && sleep 1; done; echo -n -e "  [OK]\n"
+#echo -n "Waiting for pods ready..."
+#while [[ $(oc get pods  -n openshift-gatekeeper-system  -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True True True" ]]; do echo -n "." && sleep 1; done; echo -n -e "  [OK]\n"
 
 sleep 5
 
