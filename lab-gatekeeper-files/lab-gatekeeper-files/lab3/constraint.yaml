@@ -1,0 +1,25 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: template-constraint-requiredroute-${USER}
+objects:
+- apiVersion: constraints.gatekeeper.sh/v1beta1
+  kind: RequiredRouteName
+  metadata:
+    name: required-route-name-${USER}
+  spec:
+    enforcementAction: deny      
+    match:
+      namespaces:
+        - "petclinic-bluegreen-${USER}"     
+        - "petclinic-beta-${USER}"  
+      kinds:
+        - apiGroups: ["*"]
+          kinds: ["Route"]
+    parameters:
+      name: route-petclinic-bluegreen
+parameters:
+- name: USER
+  description: "Username"
+  required: true
+  value: ${USER}

@@ -1,0 +1,25 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: template-constraint-maxreplicas-${USER}
+objects:
+- apiVersion: constraints.gatekeeper.sh/v1beta1
+  kind: MaxReplicas
+  metadata:
+    name: maxreplicas${USER}
+  spec:
+    enforcementAction: deny      
+    match:
+      namespaces:
+        - "petclinic-bluegreen-${USER}"      
+      kinds:
+        - apiGroups: ["*"]
+          kinds: ["Deployment"]
+    parameters:
+      replicas: 3
+parameters:
+- name: USER
+  description: "Username"
+  required: true
+  value: ${USER}
+
